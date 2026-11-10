@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sara AI - Home UI</title>
+<style>
+  :root {
+    --pink: #ff2fa6;
+    --pink-soft: #ff6fc4;
+    --pink-glow: rgba(255, 47, 166, 0.55);
+    --bg: #07000a;
+    --text: #ffffff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", "Roboto", "Noto Sans Bengali", sans-serif; }
+  body { overflow: hidden; }
+
+  .screen {
+    position: relative;
+    width: 100%;
+    max-width: 430px;
+    height: 100vh;
+    height: 100dvh;
+    margin: 0 auto;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 22%, rgba(255,47,166,.18), transparent 38%),
+      radial-gradient(circle at 80% 60%, rgba(255,47,166,.10), transparent 30%),
+      var(--bg);
+    padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 0px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* decorative stars and bokeh */
+  .deco { position: absolute; pointer-events: none; }
+  .star { width: 22px; height: 22px; color: var(--pink-soft); }
+  .bokeh {
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,47,166,.55), rgba(255,47,166,0) 70%);
+    filter: blur(2px);
+  }
+
+  /* top bar */
+  .topbar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 16px 18px 0;
+    height: 96px;
+  }
+  .btn-menu {
+    width: 58px; height: 58px; border-radius: 50%;
+    background: transparent;
+    border: 2px solid var(--pink);
+    box-shadow: 0 0 14px var(--pink-glow), inset 0 0 10px rgba(255,47,166,.25);
+    color: var(--text);
+    display: grid; place-items: center;
+    cursor: pointer;
+  }
+  .logo {
+    position: absolute; left: 0; right: 0; top: 22px;
+    text-align: center;
+    font-size: 40px;
+    font-weight: 800;
+    letter-spacing: 6px;
+    color: #ffd6ef;
+    text-shadow: 0 0 6px #ff4fb8, 0 0 18px var(--pink), 0 0 36px var(--pink);
+  }
+  .logo-line {
+    position: absolute; left: 14%; right: 14%; top: 92px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--pink), transparent);
+    box-shadow: 0 0 10px var(--pink);
+  }
+
+  /* orb section */
+  .orb-area {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+  }
+  .mic-orb-wrap {
+    position: absolute; left: 50%; top: 14%;
+    transform: translate(-50%, -50%);
+    width: 280px; height: 280px;
+    display: grid; place-items: center;
+  }
+  .ring {
+    position: absolute; border-radius: 50%;
+    border: 1.5px solid rgba(255,47,166,.35);
+  }
+  .ring.r1 { width: 260px; height: 260px; }
+  .ring.r2 { width: 320px; height: 320px; border-color: rgba(255,47,166,.22); }
+  .ring.r3 { width: 380px; height: 380px; border-color: rgba(255,47,166,.12); }
+
+  .orb {
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #ffd1ec 0%, #ff4fb8 28%, #e0108a 70%, #9a0660 100%);
+    box-shadow: 0 0 30px var(--pink), 0 0 70px var(--pink-glow), inset -10px -14px 24px rgba(90,0,50,.45);
+    display: grid; place-items: center;
+    cursor: pointer;
+    border: none;
+  }
+  .orb.big { width: 210px; height: 210px; }
+  .orb.small { width: 166px; height: 166px; }
+  .orb svg { width: 74px; height: 74px; color: #fff; filter: drop-shadow(0 0 6px rgba(255,255,255,.6)); }
+
+  .planet-wrap {
+    position: absolute; left: 50%; top: 56%;
+    transform: translate(-50%, -50%);
+    width: 220px; height: 220px;
+    display: grid; place-items: center;
+  }
+  .planet-ring {
+    position: absolute; width: 230px; height: 90px; border-radius: 50%;
+    border: 2px solid rgba(255,47,166,.5);
+    transform: rotate(-18deg);
+    box-shadow: 0 0 12px rgba(255,47,166,.4);
+  }
+  .planet-letter {
+    font-size: 40px; font-weight: 700; color: #1a0010;
+    text-shadow: 0 0 4px rgba(255,255,255,.4);
+  }
+
+  /* info cards */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    padding: 0 18px;
+    margin-bottom: 22px;
+  }
+  .card {
+    background: rgba(20,0,12,.55);
+    border: 2px solid var(--pink-soft);
+    border-radius: 22px;
+    box-shadow: 0 0 14px var(--pink-glow), inset 0 0 12px rgba(255,47,166,.15);
+    padding: 16px 8px 14px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+  }
+  .card svg { width: 40px; height: 40px; }
+  .card .label { font-size: 15px; font-weight: 400; color: #fff; }
+  .card .value { font-size: 22px; font-weight: 700; }
+
+  /* bottom controls */
+  .controls {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr 1fr;
+    align-items: center;
+    justify-items: center;
+    padding: 0 26px 34px;
+  }
+  .ctrl {
+    width: 86px; height: 86px; border-radius: 50%;
+    background: rgba(10,0,6,.8);
+    border: 2.5px solid var(--pink-soft);
+    box-shadow: 0 0 14px var(--pink-glow);
+    color: #fff;
+    display: grid; place-items: center;
+    cursor: pointer;
+  }
+  .ctrl svg { width: 34px; height: 34px; }
+  .ctrl.main {
+    width: 124px; height: 124px;
+    border: 3px solid var(--pink);
+    box-shadow: 0 0 22px var(--pink), 0 0 50px var(--pink-glow), inset 0 0 20px rgba(255,47,166,.3);
+  }
+  .live { box-shadow: 0 0 30px var(--pink), 0 0 70px var(--pink-glow) !important; }
+  .ctrl.main svg { width: 46px; height: 46px; }
+
+  .home-indicator {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    width: 150px; height: 5px; border-radius: 3px; background: #fff;
+  }
+
+  button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="screen" id="screen">
+
+  <!-- decorative (non-interactive) -->
+  <svg class="deco star" style="left:6%; top:19%" viewBox="0 0 24 24"><path fill="currentColor" d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z"/></svg>
+  <svg class="deco star" style="left:48%; top:33%; width:16px; height:16px" viewBox="0 0 24 24"><path fill="currentColor" d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z"/></svg>
+  <svg class="deco star" style="left:58%; top:58%; width:18px; height:18px" viewBox="0 0 24 24"><path fill="currentColor" d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z"/></svg>
+  <div class="deco bokeh" style="left:-4%; top:4%; width:120px; height:120px; opacity:.4"></div>
+  <div class="deco bokeh" style="right:-6%; top:12%; width:150px; height:150px; opacity:.35"></div>
+  <div class="deco bokeh" style="left:-6%; top:42%; width:110px; height:110px; opacity:.35"></div>
+  <div class="deco bokeh" style="right:4%; top:52%; width:130px; height:130px; opacity:.35"></div>
+  <div class="deco bokeh" style="left:-2%; bottom:14%; width:140px; height:140px; opacity:.3"></div>
+  <div class="deco bokeh" style="right:-2%; bottom:18%; width:110px; height:110px; opacity:.3"></div>
+
+  <!-- top bar -->
+  <header class="topbar">
+    <button class="btn-menu" id="btnMenu" aria-label="Menu">
+      <svg width="26" height="20" viewBox="0 0 26 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+        <line x1="2" y1="3" x2="24" y2="3"/><line x1="2" y1="10" x2="24" y2="10"/><line x1="2" y1="17" x2="24" y2="17"/>
+      </svg>
+    </button>
+    <div class="logo" id="logo">SARA</div>
+    <div class="logo-line"></div>
+  </header>
+
+  <!-- orb area -->
+  <section class="orb-area">
+    <div class="mic-orb-wrap">
+      <div class="ring r3"></div>
+      <div class="ring r2"></div>
+      <div class="ring r1"></div>
+      <button class="orb big" id="btnOrbMic" aria-label="Voice orb">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="planet-wrap">
+      <div class="planet-ring"></div>
+      <button class="orb small" id="btnPlanet" aria-label="Sara planet">
+        <span class="planet-letter">S</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- info cards -->
+  <section class="cards">
+    <button class="card" id="cardTemp" aria-label="Temperature">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">
+        <path d="M7 18h10a4 4 0 0 0 0-8 5 5 0 0 0-9.6-1.5A4.5 4.5 0 0 0 7 18z"/>
+      </svg>
+      <span class="label">Temperature</span>
+      <span class="value">22°C</span>
+    </button>
+    <button class="card" id="cardHaze" aria-label="Haze">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+        <path d="M3 8h12a3 3 0 1 0-3-3"/><path d="M3 12h16a3 3 0 1 1-3 3"/><path d="M3 16h8"/>
+      </svg>
+      <span class="label">Haze</span>
+      <span class="value">High</span>
+    </button>
+    <button class="card" id="cardHumidity" aria-label="Humidity">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">
+        <path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>
+      </svg>
+      <span class="label">Humidity</span>
+      <span class="value">18:25</span>
+    </button>
+  </section>
+
+  <!-- bottom controls -->
+  <nav class="controls">
+    <button class="ctrl" id="btnGrid" aria-label="Apps">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+        <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+      </svg>
+    </button>
+    <button class="ctrl main" id="btnMic" aria-label="Microphone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
+      </svg>
+    </button>
+    <button class="ctrl" id="btnChat" aria-label="Chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
+        <path d="M4 5h16v11H9l-5 4z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="12" x2="13" y2="12"/>
+      </svg>
+    </button>
+  </nav>
+
+  <div class="home-indicator"></div>
+</div>
+
+<script>
+  // Placeholder only: each button is wired to a named hook for future modules.
+  // No feature logic is implemented here.
+  const hooks = {
+    btnMenu: "menu",
+    btnOrbMic: "orb_voice",
+    btnPlanet: "planet",
+    cardTemp: "info_temperature",
+    cardHaze: "info_haze",
+    cardHumidity: "info_humidity",
+    btnGrid: "apps_grid",
+    btnMic: "mic",
+    btnChat: "chat",
+    logo: "logo"
+  };
+  Object.keys(hooks).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.dataset.hook = hooks[id];
+  });
+</script>
+<script src="mic.js"></script>
+<script>
+  // Mic wiring: API key browser prompt se ek baar lete hain (code mein hardcode nahi).
+  let micKey = "";
+  function setMicState(on) {
+    document.getElementById("btnMic").classList.toggle("live", on);
+    document.getElementById("btnOrbMic").classList.toggle("live", on);
+  }
+  async function toggleMic() {
+    if (SaaraMic.isLive()) { SaaraMic.stop(); setMicState(false); return; }
+    if (!micKey) micKey = (window.prompt("Gemini API key daalo (AIza...):") || "").trim();
+    if (!micKey) return;
+    SaaraMic.start({
+      apiKey: micKey,
+      voice: "Kore",
+      systemPrompt: "Tum Saara ho, ek pyaari female voice assistant. Jawab chhote aur friendly rakho.",
+      onStatus: s => console.log("[Sara]", s),
+      onError: e => { console.warn("[Sara]", e); alert(e); setMicState(false); },
+      onConnected: () => setMicState(true),
+      onClosed: () => setMicState(false),
+      onUserText: t => console.log("You:", t),
+      onBotText: t => console.log("Sara:", t)
+    });
+  }
+  document.getElementById("btnMic").addEventListener("click", toggleMic);
+  document.getElementById("btnOrbMic").addEventListener("click", toggleMic);
+</script>
+</body>
+</html>
