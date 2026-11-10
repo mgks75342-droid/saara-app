@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Saara</title>
+<style>
+:root{--u:.76px;--pink:#ff5c9a;--hot:#ff2e7e;--glass:rgba(34,3,20,.97);--text:#fff1f6;--mute:#f0a6c3}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+input,textarea,select{user-select:text}
+html,body{margin:0;height:100%;background:#12020b;color:var(--text);font:16px/1.4 system-ui,sans-serif;overflow:hidden}
+#backdrop{position:fixed;inset:-30px;background:url(bg.jpg) center/cover;filter:blur(26px) brightness(.65)}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#stage{position:relative;width:min(100vw,calc(100vh*941/1672));aspect-ratio:941/1672;background:url(bg.jpg) center/100% 100%;overflow:hidden}
+.p{position:absolute;left:calc(var(--x)*var(--u));top:calc(var(--y)*var(--u));width:calc(var(--w)*var(--u));height:calc(var(--h)*var(--u))}
+button.hit{background:transparent;border:0;padding:0;border-radius:50%}
+button.hit:active{background:rgba(255,92,154,.28)}
+button.sq{border-radius:calc(var(--u)*34)}
+.card{border-radius:calc(var(--u)*34);border:calc(var(--u)*3) solid var(--pink);background:linear-gradient(160deg,#4a0a27,#26031a);box-shadow:0 0 calc(var(--u)*26) rgba(255,60,130,.55),inset 0 0 calc(var(--u)*20) rgba(255,60,130,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;font-weight:700;line-height:1.18;color:#fff}
+.card .ic{font-size:calc(var(--u)*60)}
+.card .t1{font-size:calc(var(--u)*32)}
+.card .t2{font-size:calc(var(--u)*38)}
+.card .t3{font-size:calc(var(--u)*23);font-weight:600}
+#status{display:flex;align-items:center;justify-content:center;background:#14030d;color:#fff;font-weight:600;font-size:calc(var(--u)*30);border-radius:calc(var(--u)*20);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 calc(var(--u)*8)}
+#cap{display:none;align-items:center;justify-content:center;text-align:center;background:rgba(20,3,13,.78);border:calc(var(--u)*2) solid rgba(255,92,154,.7);border-radius:calc(var(--u)*30);padding:calc(var(--u)*14) calc(var(--u)*22);font-size:calc(var(--u)*32);font-weight:600;box-shadow:0 0 calc(var(--u)*30) rgba(255,60,130,.4);pointer-events:none}
+#cap.on{display:flex}
+#bSpeak.live::after{content:"";position:absolute;inset:calc(var(--u)*-14);border-radius:50%;border:calc(var(--u)*5) solid #fff;box-shadow:0 0 calc(var(--u)*44) var(--hot);animation:ring 1.2s ease-in-out infinite}
+@keyframes ring{50%{transform:scale(1.12);opacity:.55}}
+#toast{position:fixed;left:50%;top:14px;transform:translateX(-50%) translateY(-90px);background:rgba(34,3,20,.96);border:1px solid var(--pink);color:#fff;padding:10px 16px;border-radius:16px;max-width:88vw;font-size:14px;z-index:50;transition:transform .25s;box-shadow:0 0 18px rgba(255,60,130,.5);white-space:pre-wrap}
+#toast.on{transform:translateX(-50%) translateY(0)}
+#gl{visibility:hidden;pointer-events:none}
+.eye{position:absolute;border-radius:50%;background:radial-gradient(ellipse at 50% 30%,#f8c8c2 0%,#f3b2ad 100%);border-bottom:calc(var(--u)*2) solid #4a2326;transform-origin:50% 0;transform:scaleY(0) rotate(var(--r));pointer-events:none;box-shadow:0 0 calc(var(--u)*3) #f3b2ad}
+.eye.bl{animation:blink .24s ease-in-out}
+@keyframes blink{0%{transform:scaleY(0) rotate(var(--r))}45%,55%{transform:scaleY(1) rotate(var(--r))}100%{transform:scaleY(0) rotate(var(--r))}}
+#mouth{position:absolute;pointer-events:none;opacity:0}
+#mouth svg{width:100%;height:100%;overflow:visible}
+.hrt{position:absolute;bottom:calc(var(--u)*-60);font-size:calc(var(--u)*30);opacity:0;pointer-events:none;animation:rise linear infinite}
+@keyframes rise{0%{transform:translateY(0) translateX(0) scale(.6);opacity:0}15%{opacity:.8}60%{opacity:.55}100%{transform:translateY(calc(var(--u)*-1500)) translateX(calc(var(--u)*var(--dx))) scale(1.1);opacity:0}}
+/* panels */
+.panel{position:fixed;inset:0;background:var(--glass);display:none;flex-direction:column;z-index:20;padding:14px;gap:10px;overflow:auto}
+.panel.open{display:flex}
+.panel .in{width:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:10px;flex:1;min-height:0}
+.hd{display:flex;align-items:center;justify-content:space-between}
+.hd h2{margin:0;font-size:20px;color:var(--pink)}
+.x{background:transparent;border:1px solid var(--pink);color:#fff;border-radius:12px;padding:6px 14px;font-size:15px}
+label{font-size:12.5px;color:var(--mute);display:block;margin:6px 0 3px}
+input,textarea,select{width:100%;background:rgba(255,255,255,.07);border:1px solid rgba(255,92,154,.4);color:#fff;border-radius:12px;padding:11px;font-size:15px;outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--pink)}
+select option{background:#2a0418}
+.btn{background:linear-gradient(135deg,#ff4d8d,#d6246e);border:0;color:#fff;font-weight:700;border-radius:14px;padding:12px;font-size:15px}
+.btn.ghost{background:transparent;border:1px solid var(--pink)}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.g{background:rgba(255,255,255,.06);border:1px solid rgba(255,92,154,.45);border-radius:16px;padding:10px 2px;color:#fff;font-size:11.5px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.g b{font-size:24px;font-weight:400}
+.g:active{background:rgba(255,92,154,.3)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:rgba(255,92,154,.14);border:1px solid rgba(255,92,154,.5);color:#ffd5e5;border-radius:999px;padding:8px 13px;font-size:13.5px}
+#clog{flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px 2px;min-height:0}
+.b{max-width:86%;padding:9px 13px;border-radius:18px;font-size:15px;word-break:break-word;user-select:text}
+.b.me{align-self:flex-end;background:linear-gradient(135deg,#ff4d8d,#d6246e);border-bottom-right-radius:5px}
+.b.bot{align-self:flex-start;background:rgba(255,255,255,.09);border:1px solid rgba(255,92,154,.35);border-bottom-left-radius:5px}
+.b.tool,.b.sys{align-self:center;font-size:12.5px;color:var(--mute);border:1px dashed rgba(255,92,154,.4);background:transparent}
+.row{display:flex;gap:8px}
+.mem{display:flex;justify-content:space-between;gap:8px;align-items:flex-start;background:rgba(255,255,255,.06);border-radius:12px;padding:9px 11px;font-size:14px}
+.mem button{background:none;border:0;color:var(--pink);font-size:18px}
+
+#tPin{position:fixed;left:70%;top:64%;transform:translate(-50%,-50%);z-index:9999;display:block;background:linear-gradient(135deg,#ff3d7f,#c2185b);color:#fff;border:2px solid #fff9;border-radius:22px;padding:8px 12px;font-size:13px;font-weight:700;box-shadow:0 0 16px #ff3d7faa}
+#tSheet{position:fixed;inset:0;background:#000b;display:none;z-index:200;align-items:flex-end}
+#tSheet.open{display:flex}
+#tBox{width:100%;max-height:78%;overflow:auto;background:#1b1020;border-radius:18px 18px 0 0;padding:14px;color:#fff;font-family:sans-serif}
+#tBox h3{margin:0 0 10px;color:#ff6fa5;display:flex;justify-content:space-between}
+#tBox .tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:10px}
+#tBox .tabs button{flex:none;background:#2c1a33;color:#fff;border:1px solid #ff3d7f55;border-radius:14px;padding:6px 10px;font-size:12px}
+#tBox .tabs button.on{background:#ff3d7f}
+#tBox .g{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+#tBox .g div{background:#2c1a33;border-radius:12px;padding:10px;font-size:13px}
+#tBox .x{background:none;border:0;color:#fff;font-size:20px}
+</style>
+</head>
+<body>
+<div id="backdrop"></div>
+<div id="wrap"><div id="stage">
+  <canvas id="gl" class="p" style="--x:0;--y:0;--w:941;--h:1672"></canvas>
+  <div class="eye p" id="eyeL" style="--x:451;--y:268;--w:36;--h:18;--r:-8deg"></div>
+  <div class="eye p" id="eyeR" style="--x:505;--y:263;--w:34;--h:18;--r:-14deg"></div>
+  <div class="p" id="mouth" style="--x:482;--y:303;--w:34;--h:19.3">
+    <svg viewBox="0 0 60 34" xmlns="http://www.w3.org/2000/svg">
+      <defs><filter id="bl" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+      <ellipse cx="30" cy="17" rx="29" ry="14" fill="#f6bdb8" filter="url(#bl)"/>
+      <path id="mIn" d="M8,16 Q30,15 52,16 Q44,16 30,16 Q16,16 8,16 Z" fill="#4a0716"/>
+      <rect id="mTeeth" x="15" y="16" width="30" height="0" rx="1.5" fill="#fff1ee"/>
+      <path id="mLow" d="M6,16.5 Q30,23.5 54,16.5 Q44,16.6 30,16.6 Q16,16.6 6,16.5 Z" fill="#e47a88"/>
+      <path d="M6,16 Q18,8 30,11 Q42,8 54,16 Q42,14.5 30,15.5 Q18,14.5 6,16 Z" fill="#cf4f62"/>
+    </svg>
+  </div>
+  <button class="hit p" id="bMenu"  style="--x:58;--y:10;--w:130;--h:122" aria-label="menu"></button>
+  <button class="hit p" id="bGear"  style="--x:754;--y:10;--w:130;--h:122" aria-label="settings"></button>
+
+  <div class="card p" id="cWeather" style="--x:41;--y:626;--w:189;--h:221">
+    <div class="ic" id="wIc">⛅</div><div class="t1">Weather</div><div class="t2" id="wT">--°C</div><div class="t3" id="wD">...</div>
+  </div>
+  <div class="card p" id="cTime" style="--x:723;--y:626;--w:188;--h:221">
+    <div class="ic">🕒</div><div class="t1">Time</div><div class="t2" id="tm">--:--</div><div class="t3" id="dt">...</div>
+  </div>
+  <button class="hit sq p" id="bRem"   style="--x:42;--y:950;--w:211;--h:170" aria-label="reminder"></button>
+  <button class="hit sq p" id="bTools" style="--x:705;--y:950;--w:205;--h:170" aria-label="quick tools"></button>
+
+  <div class="p" id="cap" style="--x:80;--y:1190;--w:780;--h:120"><span id="capT"></span></div>
+
+  <button class="hit p" id="bCam"   style="--x:92;--y:1380;--w:144;--h:144" aria-label="camera"></button>
+  <button class="hit p" id="bSpeak" style="--x:386;--y:1378;--w:168;--h:168" aria-label="speak"></button>
+  <button class="hit p" id="bChat"  style="--x:704;--y:1380;--w:144;--h:144" aria-label="chat"></button>
+  <div class="p" id="status" style="--x:338;--y:1578;--w:268;--h:50">Tap to start...</div>
+</div></div>
+<div id="toast"></div>
+
+<!-- Settings -->
+<div class="panel" id="pSet"><div class="in">
+  <div class="hd"><h2>⚙ Settings</h2><button class="x" data-close="pSet">Band</button></div>
+  <div><label>Gemini API Key (AIza... se shuru)</label><input id="key" type="password" placeholder="AIza..."></div>
+  <div><label>Live Model</label><input id="model" placeholder="gemini-3.1-flash-live-preview"></div>
+  <div><label>Saara ki awaaz</label>
+    <select id="voice"><option>Aoede</option><option>Kore</option><option>Leda</option><option>Zephyr</option><option>Puck</option><option>Charon</option><option>Fenrir</option><option>Orus</option></select></div>
+  <div><label>Bhasha</label>
+    <select id="lang"><option value="hinglish">Hinglish</option><option value="bn">বাংলা</option><option value="en">English</option><option value="hi">हिन्दी</option></select></div>
+  <div><label>Mode</label>
+    <select id="mode"><option value="auto">Auto (net ho to Gemini, nahi to offline)</option><option value="offline">Hamesha offline</option><option value="online">Sirf Gemini (online)</option></select></div>
+  <div><label>Offline mic ki bhasha</label>
+    <select id="olang"><option value="auto">Auto (upar ki bhasha se)</option><option value="bn-BD">বাংলা (BD)</option><option value="bn-IN">বাংলা (IN)</option><option value="hi-IN">हिन्दी</option><option value="en-IN">English (India)</option><option value="en-US">English (US)</option></select></div>
+  <div style="font-size:12.5px;color:var(--mute)">Offline ke liye: Google app &gt; Profile &gt; Settings &gt; Voice &gt; Offline speech recognition mein apni bhasha download karo.</div>
+  <div><label>Beech mein tokna (interrupt)</label>
+    <select id="interrupt"><option value="off">Band: bolte waqt mic mute (echo se bachav, awaaz saaf)</option><option value="on">Chalu: bolkar beech mein tok sakte ho (earphone ke saath)</option></select></div>
+  <div><label>Aapka naam</label><input id="name" placeholder="Jaise: Rahul"></div>
+  <div><label>Aapki pasand (kaise baat karun)</label><textarea id="prefs" rows="3" placeholder="Jaise: chhote jawab, funny style"></textarea></div>
+  <div class="row"><button class="btn" style="flex:1" id="saveSet">Save</button><button class="btn ghost" style="flex:1" id="accBtn">Phone control ON</button></div>
+  <div id="accSt" style="font-size:13px;color:var(--mute)"></div>
+  <div style="font-size:12.5px;color:var(--mute)">Phone control ON karne ke baad Accessibility settings mein Saara ka shortcut/floating button chuno. Us button ko dabane se Saara sunna shuru karegi, dobara dabane par band. "Off ho jao" bolne par bhi band ho jaati hai.</div>
+</div></div>
+
+<!-- Chat -->
+<div class="panel" id="pChat"><div class="in">
+  <div class="hd"><h2>💬 Chat</h2><button class="x" data-close="pChat">Band</button></div>
+  <div id="clog"></div>
+  <div class="row"><input id="txt" placeholder="Saara ko likh kar bolo..."><button class="btn" id="send">➤</button></div>
+</div></div>
+
+<!-- Quick tools -->
+<div class="panel" id="pTools"><div class="in">
+  <div class="hd"><h2>⭐ Quick Tools</h2><button class="x" data-close="pTools">Band</button></div>
+  <div class="grid" id="tgrid"></div>
+</div></div>
+
+<!-- Reminder -->
+<div class="panel" id="pRem"><div class="in">
+  <div class="hd"><h2>🔔 Reminder</h2><button class="x" data-close="pRem">Band</button></div>
+  <div><label>Kis kaam ke liye?</label><input id="rTxt" placeholder="Jaise: chai banana"></div>
+  <div class="row">
+    <div style="flex:1"><label>Kitne minute baad (timer)</label><input id="rMin" type="number" inputmode="numeric" placeholder="10"></div>
+    <div style="flex:1"><label>Ya alarm ka samay</label><input id="rTime" type="time"></div>
+  </div>
+  <div class="row"><button class="btn" style="flex:1" id="rTimer">⏱ Timer lagao</button><button class="btn" style="flex:1" id="rAlarm">⏰ Alarm lagao</button></div>
+  <button class="btn ghost" id="rShow">Saare alarm dekho</button>
+</div></div>
+
+<!-- Game -->
+<div class="panel" id="pGame"><div class="in">
+  <div class="hd"><h2>🎮 Game Khelna</h2><button class="x" data-close="pGame">Band</button></div>
+  <div style="font-size:13px;color:var(--mute)">Game kholo, Saara ko rules batao (chat/voice se ya yahan likho). Roko tak wo screen dekh kar khelti rahegi. Phone control (Accessibility) ON hona chahiye.</div>
+  <div><label>Game ka naam</label><input id="gname" placeholder="Candy Crush"></div>
+  <div><label>Rules / niyam (optional)</label><textarea id="grules" rows="3" placeholder="Jaise: 3 ya zyada same rang milao, 4-5 ka match banao"></textarea></div>
+  <div class="row"><button class="btn" style="flex:1" id="gStart">▶ Khelna shuru</button><button class="btn ghost" style="flex:1" id="gShot">📸 Frame dekho</button></div>
+  <canvas id="gcv" width="360" height="200" style="width:100%;border-radius:10px;background:#000"></canvas>
+  <div style="font-size:12px;color:var(--mute)">Grid candies par sahi na baithe to nudge karo:</div>
+  <div class="row" style="flex-wrap:wrap">
+    <button class="btn ghost" data-nudge="dx:-4">◀</button><button class="btn ghost" data-nudge="dx:4">▶</button><button class="btn ghost" data-nudge="dy:-4">▲</button><button class="btn ghost" data-nudge="dy:4">▼</button>
+    <button class="btn ghost" data-nudge="sw:-6">↔−</button><button class="btn ghost" data-nudge="sw:6">↔＋</button><button class="btn ghost" data-nudge="sh:-6">↕−</button><button class="btn ghost" data-nudge="sh:6">↕＋</button>
+    <button class="btn ghost" id="gReset">Board reset</button>
+  </div>
+  <div id="glog" style="font-size:12px;max-height:120px;overflow:auto;color:var(--mute)"></div>
+  <div class="hd" style="margin-top:8px"><h2 style="font-size:17px">🕹️ ৫০টি গেমিং টুল</h2></div>
+  <select id="gtsel"></select>
+  <input id="gtin" placeholder="ইনপুট">
+  <button class="btn" id="gtrun">চালাও</button>
+  <div id="gtout" style="white-space:pre-wrap;font-size:14px"></div>
+</div></div>
+
+<!-- Menu -->
+<div class="panel" id="pMenu"><div class="in">
+  <div class="hd"><h2>👑 Saara kya kya kar sakti hai</h2><button class="x" data-close="pMenu">Band</button></div>
+  <div style="font-size:13px;color:var(--mute)">Kisi par tap karo, Saara kar degi:</div>
+  <div class="chips" id="chips"></div>
+  <div class="hd" style="margin-top:8px"><h2 style="font-size:17px">🧠 Saara ko jo yaad hai</h2></div>
+  <div class="row"><input id="memTxt" placeholder="Kuch yaad rakhwao..."><button class="btn" id="memAdd">+</button></div>
+  <div id="memList" style="display:flex;flex-direction:column;gap:8px"></div>
+  <button class="btn ghost" id="memClear">Sab yaad mitao</button>
+</div></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d = "") { try { return localStorage.getItem(k) ?? d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+};
+const HAS = !!window.Android;
+function fit() { document.documentElement.style.setProperty("--u", ($("stage").clientWidth / 941) + "px"); }
+addEventListener("resize", fit); fit();
+
+/* ---------- small helpers ---------- */
+let toastT;
+function toast(t) { const e = $("toast"); e.textContent = t; e.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => e.classList.remove("on"), 2800); }
+function openP(id) { $(id).classList.add("open"); }
+function closeP(id) { $(id).classList.remove("open"); }
+document.querySelectorAll("[data-close]").forEach(b => b.onclick = () => closeP(b.dataset.close));
+function setStatus(t) { $("status").textContent = t; }
+let capT;
+function setCap(t, ms) { if (!t) { $("cap").classList.remove("on"); return; } $("capT").textContent = t.slice(-160); $("cap").classList.add("on"); clearTimeout(capT); capT = setTimeout(() => $("cap").classList.remove("on"), ms || 5000); }
+function bubble(kind, text) { const d = document.createElement("div"); d.className = "b " + kind; d.textContent = text; $("clog").appendChild(d); $("clog").scrollTop = 1e9; return d; }
+const log = t => bubble("sys", t);
+function native(name, args) {
+  if (!HAS) return "Ye feature sirf Saara app ke andar chalta hai.";
+  try { return String(Android.call(name, JSON.stringify(args || {}))); } catch (e) { return "error: " + e.message; }
+}
+
+/* ---------- settings ---------- */
+const FIELDS = ["key", "model", "voice", "lang", "mode", "olang", "interrupt", "name", "prefs"];
+FIELDS.forEach(k => { const v = store.get("saara_" + k); if (v) $(k).value = v; });
+$("saveSet").onclick = () => { FIELDS.forEach(k => store.set("saara_" + k, $(k).value)); closeP("pSet"); toast("Save ho gaya ✓"); };
+$("accBtn").onclick = () => { if (HAS) Android.openAccessibility(); };
+function refreshAcc() { $("accSt").textContent = !HAS ? "" : (Android.isAccessEnabled() ? "✅ Phone control chalu hai" : "⚠ Phone control band hai: Accessibility mein Saara ON karo"); }
+$("bGear").onclick = () => { refreshAcc(); openP("pSet"); };
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { refreshAcc(); loadWeather(); } });
+
+/* ---------- memory ---------- */
+const mem = {
+  load() { try { return JSON.parse(store.get("saara_mem", "[]")); } catch (e) { return []; } },
+  save(a) { store.set("saara_mem", JSON.stringify(a.slice(-80))); }
+};
+function renderMem() {
+  const box = $("memList"); box.innerHTML = "";
+  const a = mem.load();
+  if (!a.length) { box.innerHTML = '<div style="font-size:13px;color:var(--mute)">Abhi kuch yaad nahi.</div>'; return; }
+  a.forEach((m, i) => {
+    const d = document.createElement("div"); d.className = "mem";
+    const s = document.createElement("span"); s.textContent = m.t;
+    const b = document.createElement("button"); b.textContent = "✕";
+    b.onclick = () => { const x = mem.load(); x.splice(i, 1); mem.save(x); renderMem(); };
+    d.append(s, b); box.appendChild(d);
+  });
+}
+$("memAdd").onclick = () => { const t = $("memTxt").value.trim(); if (!t) return; const a = mem.load(); a.push({ t, d: new Date().toISOString().slice(0, 10) }); mem.save(a); $("memTxt").value = ""; renderMem(); };
+let clr = 0;
+$("memClear").onclick = () => { if (!clr) { clr = 1; $("memClear").textContent = "Pakka? Dobara dabao"; setTimeout(() => { clr = 0; $("memClear").textContent = "Sab yaad mitao"; }, 3000); return; } mem.save([]); clr = 0; $("memClear").textContent = "Sab yaad mitao"; renderMem(); };
+
+/* ---------- clock + weather ---------- */
+function tick() {
+  const d = new Date();
+  $("tm").textContent = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  $("dt").textContent = d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+}
+setInterval(tick, 1000); tick();
+const WX = c => c === 0 ? ["☀️", "Clear"] : c <= 2 ? ["⛅", "Partly Cloudy"] : c === 3 ? ["☁️", "Cloudy"] : c <= 48 ? ["🌫️", "Fog"] : c <= 57 ? ["🌦️", "Drizzle"] : c <= 67 ? ["🌧️", "Rain"] : c <= 77 ? ["❄️", "Snow"] : c <= 82 ? ["🌧️", "Showers"] : ["⛈️", "Storm"];
+async function loadWeather() {
+  try {
+    if (!HAS) return;
+    const r = String(Android.call("get_location", "{}"));
+    const m = r.match(/(-?\d+\.\d+),(-?\d+\.\d+)/);
+    if (!m) { $("wD").textContent = "Location off"; return; }
+    const j = await (await fetch("https://api.open-meteo.com/v1/forecast?latitude=" + m[1] + "&longitude=" + m[2] + "&current=temperature_2m,weather_code")).json();
+    const w = WX(j.current.weather_code);
+    $("wIc").textContent = w[0]; $("wT").textContent = Math.round(j.current.temperature_2m) + "°C"; $("wD").textContent = w[1];
+  } catch (e) { $("wD").textContent = "Offline"; }
+}
+$("cWeather").onclick = () => { $("wD").textContent = "..."; loadWeather(); };
+loadWeather(); setInterval(loadWeather, 900000);
+
+/* ---------- quick tools (AI ke bina seedha) ---------- */
+let torch = false;
+const QT = [
+  ["🔦", "Torch", () => { torch = !torch; return native("flashlight", { on: torch }); }],
+  ["🔋", "Battery", () => native("battery")],
+  ["📍", "Location", () => native("get_location")],
+  ["📶", "Network", () => native("network_status")],
+  ["🔊", "Volume 80", () => native("set_volume", { level: 80 })],
+  ["🔇", "Mute", () => native("set_volume", { level: 0 })],
+  ["⏯", "Play/Pause", () => native("media_control", { action: "play_pause" })],
+  ["⏭", "Next", () => native("media_control", { action: "next" })],
+  ["📸", "Screenshot", () => native("press_button", { button: "screenshot" })],
+  ["🎮", "Gaming Tools (50)", () => { closeP("pTools"); openGame(); }],
+  ["🔒", "Lock", () => native("press_button", { button: "lock" })],
+  ["🏠", "Home", () => native("press_button", { button: "home" })],
+  ["◀", "Back", () => native("press_button", { button: "back" })],
+  ["🔔", "Notifications", () => native("press_button", { button: "notifications" })],
+  ["⚡", "Quick Settings", () => native("press_button", { button: "quick_settings" })],
+  ["📷", "Camera", () => native("open_camera")],
+  ["▶️", "YouTube", () => native("open_app", { name: "YouTube" })],
+  ["💬", "WhatsApp", () => native("open_app", { name: "WhatsApp" })],
+  ["🌐", "Chrome", () => native("open_app", { name: "Chrome" })],
+  ["🗺", "Maps", () => native("open_app", { name: "Maps" })],
+  ["✉️", "Gmail", () => native("open_app", { name: "Gmail" })],
+  ["📞", "Dialer", () => native("open_intent", { action: "android.intent.action.DIAL" })],
+  ["⏰", "Alarms", () => native("show_alarms")],
+  ["📋", "Clipboard", () => native("read_clipboard")],
+  ["ℹ️", "Device", () => native("device_info")],
+  ["📡", "Wi-Fi", () => native("open_settings", { page: "wifi" })],
+  ["🔵", "Bluetooth", () => native("open_settings", { page: "bluetooth" })],
+  ["🔆", "Display", () => native("open_settings", { page: "display" })],
+  ["⚙️", "Settings", () => native("open_settings", { page: "all" })]
+];
+QT.forEach(([ic, lb, fn]) => {
+  const b = document.createElement("button"); b.className = "g"; b.innerHTML = "<b>" + ic + "</b>" + lb;
+  b.onclick = () => { const r = fn(); toast(lb + ": " + String(r).slice(0, 140)); };
+  $("tgrid").appendChild(b);
+});
+$("bTools").onclick = () => openP("pTools");
+$("bCam").onclick = () => { toast(native("open_camera")); };
+
+/* ---------- reminder ---------- */
+$("bRem").onclick = () => openP("pRem");
+$("rTimer").onclick = () => {
+  const m = parseFloat($("rMin").value); if (!(m > 0)) { toast("Minute likho"); return; }
+  native("set_timer", { seconds: Math.round(m * 60), label: $("rTxt").value || "Saara" }); toast("⏱ " + m + " minute ka timer lag gaya"); closeP("pRem");
+};
+$("rAlarm").onclick = () => {
+  const v = $("rTime").value; if (!v) { toast("Samay chuno"); return; }
+  const [h, mi] = v.split(":").map(Number);
+  native("set_alarm", { hour: h, minute: mi, label: $("rTxt").value || "Saara" }); toast("⏰ Alarm " + v + " par lag gaya"); closeP("pRem");
+};
+$("rShow").onclick = () => native("show_alarms");
+
+/* ---------- menu + chips ---------- */
+const EXAMPLES = [
+  "Meri battery kitni hai?", "Torch jala do", "Subah 6 baje ka alarm lagao", "10 minute ka timer lagao",
+  "YouTube kholo aur koi gaana chalao", "Screen par kya hai dekho", "Mere paas kaun kaun se app hain?",
+  "Maa ko call karo", "Aaj ka mausam aur samay batao", "Mujhe Google par search karke batao",
+  "Volume kam karo", "Is jagah ka rasta Maps mein kholo", "Clipboard mein kya hai padho", "Meri location batao"
+];
+EXAMPLES.forEach(t => { const c = document.createElement("button"); c.className = "chip"; c.textContent = t; c.onclick = () => { closeP("pMenu"); openP("pChat"); sendText(t); }; $("chips").appendChild(c); });
+$("bMenu").onclick = () => { renderMem(); openP("pMenu"); };
+
+/* ---------- tools for Gemini ---------- */
+const S = d => ({ type: "STRING", description: d }), N = d => ({ type: "NUMBER", description: d }), B = d => ({ type: "BOOLEAN", description: d });
+const F = (name, desc, props, req) => { const o = { name, description: desc }; if (props) o.parameters = { type: "OBJECT", properties: props, required: req || Object.keys(props) }; return o; };
+const GNAMES = () => (typeof GTOOLS !== "undefined" ? GTOOLS.map(t => t[1] + (t[2] ? " (" + t[2] + ")" : "")) : []);
+const TOOLS_BUILD = () => [{ functionDeclarations: [
+  F("turn_off", "Jab user kahe off ho jao, band ho jao, bye, chup ho jao ya stop listening, tab ye call karo. Pehle chhota sa alvida bolo."),
+  F("save_memory", "User ke baare mein koi baat yaad rakho.", { text: S("kya yaad rakhna hai") }),
+  F("forget_memory", "Koi purani yaad bhula do.", { text: S("us yaad ke keywords") }),
+  F("look_screen", "Phone screen ka asli screenshot dekho (jab text se kaam na chale)."),
+  F("read_screen", "Screen ka text aur button positions padho."),
+  F("tap_text", "Screen par diye gaye text wale button par tap karo.", { text: S("button ka text") }),
+  F("tap_xy", "Screen par x,y pixel par tap karo.", { x: N("x"), y: N("y") }),
+  F("long_press", "x,y par long press.", { x: N("x"), y: N("y") }),
+  F("double_tap", "x,y par double tap.", { x: N("x"), y: N("y") }),
+  F("swipe", "Ek point se doosre tak swipe.", { x1: N("x1"), y1: N("y1"), x2: N("x2"), y2: N("y2") }),
+  F("scroll", "Screen scroll karo.", { direction: S("up ya down") }),
+  F("type_text", "Focused text box mein text likho.", { text: S("likhne wala text") }),
+  F("press_button", "Button dabao.", { button: S("back, home, recents, notifications, quick_settings, lock, screenshot, enter, power_menu") }),
+  F("wait", "Kuch second ruko.", { seconds: N("1 se 10") }),
+  F("open_app", "App kholo (uska naam English mein jaise YouTube, WhatsApp).", { name: S("app ka naam") }),
+  F("list_apps", "Phone ke installed apps ki list."),
+  F("open_play_store", "Play Store mein app dhundo.", { query: S("app ka naam") }),
+  F("call_number", "Phone call lagao (naam ya number).", { to: S("contact ka naam ya number") }),
+  F("dial_number", "Dialer kholo (call nahi lagta).", { to: S("naam ya number") }),
+  F("send_sms", "SMS bhejo.", { to: S("naam ya number"), text: S("message") }),
+  F("whatsapp_message", "WhatsApp chat message ke saath kholo (Send user/tap se).", { to: S("naam ya number country code ke saath"), text: S("message") }),
+  F("find_contact", "Contacts mein naam dhundo.", { name: S("naam") }),
+  F("send_email", "Email likhne ka screen kholo.", { to: S("email"), subject: S("subject"), body: S("message") }),
+  F("get_time", "Abhi ka samay aur tareekh."),
+  F("set_alarm", "Alarm lagao.", { hour: N("0-23"), minute: N("0-59"), label: S("naam") }, ["hour", "minute"]),
+  F("set_timer", "Timer lagao.", { seconds: N("seconds"), label: S("naam") }, ["seconds"]),
+  F("show_alarms", "Alarm list kholo."),
+  F("add_calendar_event", "Calendar event banao.", { title: S("title"), start: S("YYYY-MM-DDTHH:MM"), minutes: N("kitne minute") }, ["title", "start"]),
+  F("flashlight", "Torch on/off.", { on: B("true on, false off") }),
+  F("set_volume", "Volume set karo 0-100.", { level: N("0-100"), stream: S("music, ring ya alarm") }, ["level"]),
+  F("media_control", "Music control.", { action: S("play_pause, play, pause, next, previous, stop") }),
+  F("battery", "Battery percent."),
+  F("vibrate", "Phone vibrate karo.", { ms: N("milliseconds") }, []),
+  F("device_info", "Phone model, Android version, storage."),
+  F("network_status", "Wifi/mobile data/offline."),
+  F("get_location", "Abhi ki location."),
+  F("open_settings", "Settings page kholo.", { page: S("wifi, bluetooth, display, sound, battery, location, apps, date, airplane, nfc, storage, accessibility, all") }),
+  F("open_camera", "Camera kholo."),
+  F("play_game", "User ke kehne par phone ka koi game (jaise Candy Crush) screen dekh kar khelo. User game pehle khol chuka ho. User ke bataye rules do.", { game: S("game ka naam"), rules: S("user ke bataye niyam, khali bhi ho sakta hai") }, ["game"]),
+  F("stop_game", "Game khelna band karo (jab user kahe game roko/band karo)."),
+  F("game_tool", "Gaming tool chalao. name ko neeche ki list se bilkul waisa hi do. Tool list: " + GNAMES().join(" | "), { name: S("list mein se tool ka naam"), input: S("input values, jaise 10 5 ya khali") }, ["name"]),
+  F("copy_clipboard", "Text copy karo.", { text: S("text") }),
+  F("read_clipboard", "Clipboard ka text padho."),
+  F("share_text", "Text share sheet kholo.", { text: S("text") }),
+  F("open_url", "Link kholo.", { url: S("https://...") }),
+  F("web_search", "Google par search.", { query: S("kya search karna hai") }),
+  F("youtube_search", "YouTube par search.", { query: S("kya dhundhna hai") }),
+  F("navigate", "Maps mein rasta/jagah kholo.", { place: S("jagah") }),
+  F("open_intent", "Koi bhi Android intent kholo.", { action: S("jaise android.intent.action.VIEW"), uri: S("uri"), package: S("package (optional)") }, ["action"])
+] }];
+
+function runTool(name, args) {
+  args = args || {};
+  if (name === "turn_off") { offRequested = true; setTimeout(() => { if (live) { stop(); if (HAS) Android.minimize(); } }, 9000); return "theek hai, alvida bol do, phir main band ho jaungi"; }
+  if (name === "save_memory") { const a = mem.load(); a.push({ t: args.text, d: new Date().toISOString().slice(0, 10) }); mem.save(a); return "yaad kar liya"; }
+  if (name === "forget_memory") { const k = String(args.text || "").toLowerCase(); const a = mem.load().filter(m => !m.t.toLowerCase().includes(k)); mem.save(a); return "bhula diya"; }
+  if (name === "look_screen") {
+    const b = HAS ? Android.screenshot() : "";
+    if (!b) return "screenshot nahi mila (phone control ON hai?)";
+    ws.send(JSON.stringify({ realtimeInput: { video: { data: b, mimeType: "image/jpeg" } } }));
+    return "screenshot bhej diya, ab dekh kar batao";
+  }
+  if (name === "play_game") { startGame(args.game, args.rules).then(r => bubble("tool", "🎮 " + r)); return "game shuru kar rahi hoon, app minimize ho jayega"; }
+  if (name === "stop_game") return stopGame();
+  if (name === "game_tool") { const q = String(args.name || "").replace(/\s*\(.*\)\s*$/, "").trim(); const t = GTOOLS.find(x => x[1] === q) || GTOOLS.find(x => x[1].includes(q) || q.includes(x[1])); if (!t) return (window.__runAiTool ? window.__runAiTool(q, args.input) : "এই টুলের কাজ এখনো যুক্ত হয়নি।"); return Promise.resolve(t[3](args.input || "")).then(String); }
+  return native(name, args);
+}
+
+/* ---------- Gemini Live ---------- */
+let ws, micCtx, stream, proc, outCtx, nextTime = 0, sources = [], live = false, pending = null, curMe = null, curBot = null, offRequested = false, autoMin = false, analyser = null, anBuf = null;
+let wkOut = null, wkBuf = 0, lastAudioAt = 0, micNode = null;
+function b64FromPcm(int16) {
+  const bytes = new Uint8Array(int16.buffer); let s = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+const WK_SRC = `
+class SaaraPlayer extends AudioWorkletProcessor {
+  constructor() {
+    super(); this.q = []; this.cur = null; this.pos = 0; this.buf = 0; this.run = false; this.idle = 0; this.tick = 0;
+    this.port.onmessage = e => {
+      const d = e.data;
+      if (d === "clear") { this.q = []; this.cur = null; this.pos = 0; this.buf = 0; this.run = false; this.idle = 0; }
+      else if (d === "flush") { this.run = true; }
+      else { this.q.push(d); this.buf += d.length; this.idle = 0; }
+    };
+  }
+  process(inputs, outputs) {
+    const out = outputs[0][0], n = out.length;
+    if (!this.run) {
+      if (this.buf >= 3600) this.run = true;
+      else if (this.buf > 0) { this.idle += n; if (this.idle > 6000) this.run = true; }
+    }
+    if (this.run) {
+      for (let i = 0; i < n; i++) {
+        if (!this.cur || this.pos >= this.cur.length) { this.cur = this.q.length ? this.q.shift() : null; this.pos = 0; }
+        if (this.cur) { out[i] = this.cur[this.pos++]; this.buf--; }
+        else { out[i] = 0; this.run = false; this.idle = 0; }
+      }
+    }
+    this.tick += n;
+    if (this.tick >= 2400) { this.tick = 0; this.port.postMessage(this.buf); }
+    return true;
+  }
+}
+registerProcessor("saara-player", SaaraPlayer);
+class SaaraMic extends AudioWorkletProcessor {
+  constructor() { super(); this.b = new Float32Array(1600); this.i = 0; }
+  process(inputs) {
+    const ch = inputs[0] && inputs[0][0];
+    if (!ch) return true;
+    for (let k = 0; k < ch.length; k++) {
+      this.b[this.i++] = ch[k];
+      if (this.i >= 1600) {
+        const o = new Int16Array(1600);
+        for (let j = 0; j < 1600; j++) { const v = Math.max(-1, Math.min(1, this.b[j])); o[j] = v * 32767; }
+        this.port.postMessage(o.buffer, [o.buffer]); this.i = 0;
+      }
+    }
+    return true;
+  }
+}
+registerProcessor("saara-mic", SaaraMic);
+`;
+let wkUrl = null;
+const workletUrl = () => wkUrl || (wkUrl = URL.createObjectURL(new Blob([WK_SRC], { type: "application/javascript" })));
+async function initAudio() {
+  outCtx = new AudioContext({ sampleRate: 24000 });
+  try { outCtx.resume(); } catch (e) {}
+  analyser = outCtx.createAnalyser(); analyser.fftSize = 512; analyser.connect(outCtx.destination); anBuf = new Uint8Array(analyser.fftSize);
+  wkOut = null; wkBuf = 0;
+  try {
+    if (!outCtx.audioWorklet) throw new Error("no worklet");
+    await outCtx.audioWorklet.addModule(workletUrl());
+    wkOut = new AudioWorkletNode(outCtx, "saara-player", { numberOfInputs: 0, outputChannelCount: [1] });
+    wkOut.connect(analyser);
+    wkOut.port.onmessage = e => { const was = wkBuf; wkBuf = e.data; if (was > 0 && wkBuf === 0 && live) setStatus("Sun rahi hoon..."); };
+  } catch (e) { wkOut = null; log("Smooth audio engine nahi chala, simple mode."); }
+}
+function playPcm(b64) {
+  const bin = atob(b64), n = bin.length >> 1, f32 = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    let v = (bin.charCodeAt(2 * i + 1) << 8) | bin.charCodeAt(2 * i);
+    if (v & 0x8000) v -= 0x10000;
+    f32[i] = v / 32768;
+  }
+  lastAudioAt = Date.now();
+  if (wkOut) {
+    wkOut.port.postMessage(f32, [f32.buffer]); wkBuf += n;
+  } else {
+    const buf = outCtx.createBuffer(1, n, 24000);
+    buf.copyToChannel(f32, 0);
+    const src = outCtx.createBufferSource();
+    src.buffer = buf; src.connect(analyser || outCtx.destination);
+    const now = outCtx.currentTime;
+    if (nextTime < now + 0.02) nextTime = now + 0.15;
+    src.start(nextTime); nextTime += buf.duration;
+    sources.push(src);
+    src.onended = () => { sources = sources.filter(x => x !== src); if (!sources.length && live) setStatus("Sun rahi hoon..."); };
+  }
+  setStatus("Saara bol rahi hai...");
+}
+function stopPlayback() {
+  if (wkOut) { wkOut.port.postMessage("clear"); wkBuf = 0; }
+  sources.forEach(x => { try { x.stop(); } catch (e) {} }); sources = []; nextTime = 0;
+}
+$("cap").onclick = stopPlayback;
+
+const LANGS = { hinglish: "Hinglish (Roman script mein Hindi + English)", bn: "Bengali (বাংলা)", en: "English", hi: "Hindi (हिन्दी)" };
+function buildPrompt() {
+  const name = $("name").value.trim(), prefs = $("prefs").value.trim();
+  const now = new Date().toLocaleString("en-IN", { dateStyle: "full", timeStyle: "short" });
+  const m = mem.load().map(x => "- (" + x.d + ") " + x.t).join("\n");
+  return "Tum Saara ho, ek pyaari personal voice AI assistant (Jarvis jaisi). Tumhari awaaz female hai.\n" +
+    "Abhi ki tareekh aur samay: " + now + ".\n" +
+    "Default bhasha: " + LANGS[$("lang").value] + ". User jis bhasha mein bole usi mein jawab do. Jawab chhote aur friendly rakho.\n" +
+    (name ? "User ka naam " + name + " hai.\n" : "") +
+    (prefs ? "User ki preferences: " + prefs + ".\n" : "") +
+    (m ? "Ye baatein tumhe user ke baare mein yaad hain:\n" + m + "\n" : "") +
+    "Jab user kuch yaad rakhne ko kahe ya apne baare mein zaroori baat bataye, save_memory use karo.\n" +
+    "Phone par screen ka kaam karne se pehle read_screen se dekho (zarurat ho to look_screen), phir tap_text/scroll/type_text use karo, aur kaam ke baad batao kya kiya.\n" +
+    "Call, SMS, WhatsApp, email bhejne, payment ya kuch delete karne se pehle user se pooch kar confirm karo.\n" +
+    "Jab user kahe \"off ho jao\", \"band ho jao\", \"bye\" ya \"chup ho jao\", to chhota alvida bol kar turn_off tool call karo.\n" +
+    "App kholne ke liye HAMESHA open_app tool call karo. Tool ka result aane se pehle kabhi mat bolo ki app khul gaya. Result \"opened\" se shuru ho tabhi kaho ki khul gaya; agar \"UNSURE\" ya \"FAILED\" aaye to read_screen se check karo aur user ko sach batao ki app nahi khula. Kisi bhi kaam ke baare mein tool result dekhe bina \"ho gaya\" mat bolo.\n" +
+    "User se har naye sawal ka jawab dene se pehle pyaar se bulao: \"জান\", \"বাবা\" ya \"সোনা\" (kabhi ek, kabhi dusra) bol kar phir jawab do. Bangla mein baat ho to \"জান, বাবা, সোনা\" jaisi meethi awaaz mein bulao.\n" +
+    "Agar user kahe \"main toilet/kaam se jaa raha hoon, tum Candy Crush khelo\" ya aisa kuch, to turant play_game call karo (game=Candy Crush) aur pyaar se bolo ki tum khelti rahogi. User wapas aaye tab stop_game se roko aur batao kitni chaal chali.\n" +
+    "Jab user kahe koi game khelo (Candy Crush etc.): agar naya game hai to rules pooch lo, phir play_game call karo. Rukne ko kahe to stop_game. Gaming calculators ke liye game_tool.\n" +
+    "Seedhe tools (alarm, timer, torch, battery, volume, location, open_app, youtube_search, navigate, etc.) screen tap karne se behtar hain, pehle unhe use karo.";
+}
+
+let wantLive = false;
+async function start() {
+  wantLive = true;
+  const md = $("mode").value;
+  if (HAS && (md === "offline" || (md === "auto" && !Android.isOnline()))) { startOffline(); return; }
+  const key = $("key").value.trim();
+  if (!key) { openP("pSet"); toast("Pehle API key daalo"); return; }
+  let model = $("model").value.trim() || "gemini-3.1-flash-live-preview";
+  if (!model.startsWith("models/")) model = "models/" + model;
+  setStatus("Connecting...");
+  try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } }); }
+  catch (e) { setStatus("Mic permission chahiye."); return; }
+  if (HAS) Android.keepAlive(true);
+  await initAudio();
+  ws = new WebSocket("wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=" + encodeURIComponent(key));
+  ws.binaryType = "arraybuffer";
+  ws.onopen = () => ws.send(JSON.stringify({ setup: {
+    model,
+    generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: $("voice").value } } } },
+    systemInstruction: { parts: [{ text: buildPrompt() }] },
+    tools: TOOLS_BUILD(),
+    realtimeInputConfig: { automaticActivityDetection: { silenceDurationMs: 10000, prefixPaddingMs: 400 } },
+    inputAudioTranscription: {},
+    outputAudioTranscription: {}
+  } }));
+  ws.onmessage = ev => {
+    const raw = typeof ev.data === "string" ? ev.data : new TextDecoder().decode(ev.data);
+    let m; try { m = JSON.parse(raw); } catch (e) { return; }
+    if (m.setupComplete) {
+      beginMic(); live = true; if (autoMin) { autoMin = false; if (HAS) setTimeout(() => Android.minimize(), 900); } $("bSpeak").classList.add("live"); setStatus("Sun rahi hoon... bolo."); log("Saara connected.");
+      if (pending) { ws.send(JSON.stringify({ realtimeInput: { text: pending } })); pending = null; }
+    }
+    if (m.toolCall && m.toolCall.functionCalls) {
+      Promise.all(m.toolCall.functionCalls.map(async fc => {
+        let r; try { r = await runTool(fc.name, fc.args); } catch (e) { r = "error: " + e.message; }
+        bubble("tool", "🔧 " + fc.name + " → " + String(r).slice(0, 90));
+        return { id: fc.id, name: fc.name, response: { result: String(r) } };
+      })).then(responses => { if (ws && ws.readyState === 1) ws.send(JSON.stringify({ toolResponse: { functionResponses: responses } })); });
+    }
+    const sc = m.serverContent;
+    if (sc) {
+      if (sc.interrupted) { stopPlayback(); curBot = null; }
+      if (sc.inputTranscription && sc.inputTranscription.text) {
+        if (!curMe) curMe = bubble("me", ""); curMe.textContent += sc.inputTranscription.text; $("clog").scrollTop = 1e9;
+      }
+      if (sc.outputTranscription && sc.outputTranscription.text) {
+        curMe = null; if (!curBot) curBot = bubble("bot", ""); curBot.textContent += sc.outputTranscription.text; $("clog").scrollTop = 1e9; setCap(curBot.textContent, 6000);
+      }
+      if (sc.turnComplete) {
+        curMe = null; curBot = null;
+        if (wkOut) wkOut.port.postMessage("flush");
+        if (offRequested) { const rem = (wkOut ? wkBuf / 24000 * 1000 : Math.max(0, nextTime - (outCtx ? outCtx.currentTime : 0)) * 1000) + 700; setTimeout(() => { if (live) { stop(); if (HAS) Android.minimize(); } }, rem); }
+      }
+      (sc.modelTurn?.parts || []).forEach(p => { if (p.inlineData?.data) playPcm(p.inlineData.data); });
+    }
+  };
+  ws.onerror = () => setStatus("Connection error");
+  ws.onclose = e => {
+    if (live || e.code !== 1000) { log("Closed: " + (e.reason || e.code)); toast("Band: " + String(e.reason || e.code).slice(0, 120)); }
+    const re = wantLive && live && !offRequested; stop(true);
+    if (re) { log("Connection tut gaya, mic dobara chalu kar rahi hoon..."); setTimeout(() => { if (wantLive && !live) start(); }, 1000); return; }
+    if (HAS && $("mode").value !== "online" && !Android.isOnline() && !offMode) { toast("Net nahi mila, offline mode chalu"); startOffline(); }
+  };
+}
+function sendMic(i16) {
+  if (!ws || ws.readyState !== 1) return;
+  if ($("interrupt").value !== "on" && (wkBuf > 0 || Date.now() - lastAudioAt < 600)) return;
+  ws.send(JSON.stringify({ realtimeInput: { audio: { data: b64FromPcm(i16), mimeType: "audio/pcm;rate=16000" } } }));
+}
+async function beginMic() {
+  micCtx = new AudioContext({ sampleRate: 16000 });
+  try { micCtx.resume(); } catch (e) {}
+  const src = micCtx.createMediaStreamSource(stream);
+  try {
+    await micCtx.audioWorklet.addModule(workletUrl());
+    micNode = new AudioWorkletNode(micCtx, "saara-mic");
+    micNode.port.onmessage = e => sendMic(new Int16Array(e.data));
+    const g = micCtx.createGain(); g.gain.value = 0;
+    src.connect(micNode); micNode.connect(g); g.connect(micCtx.destination);
+  } catch (e) {
+    proc = micCtx.createScriptProcessor(4096, 1, 1);
+    proc.onaudioprocess = ev => {
+      const f = ev.inputBuffer.getChannelData(0), i16 = new Int16Array(f.length);
+      for (let i = 0; i < f.length; i++) i16[i] = Math.max(-1, Math.min(1, f[i])) * 32767;
+      sendMic(i16);
+    };
+    src.connect(proc); proc.connect(micCtx.destination);
+  }
+}
+function stop(keep) {
+  if (!keep) wantLive = false;
+  if (offMode) { offMode = false; offSpeaking = false; offPending = null; offStopAfter = false; if (HAS) { try { Android.stopListen(); Android.stopSpeak(); } catch (e) {} } }
+  live = false; pending = null; curMe = null; curBot = null; offRequested = false;
+  if (HAS) Android.keepAlive(false);
+  try { ws && ws.close(1000); } catch (e) {}
+  try { proc && proc.disconnect(); } catch (e) {}
+  try { micCtx && micCtx.close(); } catch (e) {}
+  try { outCtx && outCtx.close(); } catch (e) {}
+  stream && stream.getTracks().forEach(t => t.stop());
+  stopPlayback(); analyser = null; wkOut = null; micNode = null; wkBuf = 0;
+  $("bSpeak").classList.remove("live");
+  setStatus("Tap to start...");
+}
+window.saaraToggle = fromBtn => {
+  if (live || offMode || (ws && ws.readyState === 0)) { stop(); if (fromBtn && HAS) Android.minimize(); }
+  else { autoMin = !!fromBtn; start(); }
+};
+$("bSpeak").onclick = () => { if (HAS) Android.vibrate(25); (live || offMode || (ws && ws.readyState === 0)) ? stop() : start(); };
+
+/* ---------- chat ---------- */
+function sendText(t) {
+  t = (t || "").trim(); if (!t) return;
+  bubble("me", t);
+  if (offMode) { handleOffline(t, false); return; }
+  if (live && ws && ws.readyState === 1) ws.send(JSON.stringify({ realtimeInput: { text: t } }));
+  else { pending = t; if (!(ws && ws.readyState === 0)) start(); }
+}
+$("bChat").onclick = () => openP("pChat");
+$("send").onclick = () => { const t = $("txt").value; $("txt").value = ""; sendText(t); };
+$("txt").addEventListener("keydown", e => { if (e.key === "Enter") $("send").click(); });
+bubble("sys", "Saara se baat karne ke liye neeche ka mic dabao, ya yahan likho.");
+if (!$("key").value) setTimeout(() => toast("Settings (⚙) mein Gemini API key daalo"), 800);
+
+
+/* ================= GAME PLAYER (screenshot dekh kar game khelna) ================= */
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const GP = { on: false, board: null, adj: { dx: 0, dy: 0, sw: 0, sh: 0 }, moves: 0, rows: 8, cols: 8, rules: store.get("saara_grules", ""), name: "Candy Crush", hist: [] };
+try { const b = JSON.parse(store.get("saara_gboard", "null")); if (b) GP.board = b; const a = JSON.parse(store.get("saara_gadj", "null")); if (a) GP.adj = a; } catch (e) {}
+const gLog = t => { const d = document.createElement("div"); d.textContent = t; $("glog").appendChild(d); $("glog").scrollTop = 1e9; while ($("glog").children.length > 60) $("glog").removeChild($("glog").firstChild); };
+async function gemJSON(b64, prompt) {
+  const k = $("key").value.trim(); if (!k) throw new Error("Settings mein API key daalo");
+  let err;
+  for (const m of ["gemini-2.5-flash", "gemini-2.0-flash"]) {
+    try {
+      const gc = { responseMimeType: "application/json", temperature: 0.1 }; if (m.includes("2.5")) gc.thinkingConfig = { thinkingBudget: 0 };
+      const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + m + ":generateContent?key=" + encodeURIComponent(k), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [...(b64 ? [{ inline_data: { mime_type: "image/jpeg", data: b64 } }] : []), { text: prompt }] }], generationConfig: gc }) });
+      const j = await r.json(); if (j.error) throw new Error(j.error.message);
+      return JSON.parse(j.candidates[0].content.parts.map(p => p.text || "").join("").replace(/```json|```/g, "").trim());
+    } catch (e) { err = e; }
+  }
+  throw err;
+}
+function frame() {
+  return new Promise((res, rej) => {
+    const b = HAS ? Android.screenshot() : ""; if (!b) return rej(new Error("screenshot nahi mila (Phone control ON karo)"));
+    const im = new Image();
+    im.onload = () => { const c = document.createElement("canvas"); c.width = im.width; c.height = im.height; const x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(im, 0, 0);
+      res({ b64: b.replace(/^data:image\/\w+;base64,/, ""), c, x, w: im.width, h: im.height, k: (screen.width * (window.devicePixelRatio || 1)) / im.width }); };
+    im.onerror = () => rej(new Error("screenshot decode nahi hua"));
+    im.src = "data:image/jpeg;base64," + b.replace(/^data:image\/\w+;base64,/, "");
+  });
+}
+function hsv(r, g, b) { const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; let h = 0; if (d) { if (mx === r) h = ((g - b) / d) % 6; else if (mx === g) h = (b - r) / d + 2; else h = (r - g) / d + 4; h *= 60; if (h < 0) h += 360; } return [h, mx ? d / mx : 0, mx / 255]; }
+const hueBin = h => (h >= 345 || h < 12) ? 0 : h < 40 ? 1 : h < 75 ? 2 : h < 165 ? 3 : h < 255 ? 4 : 5;
+const CLET = ["R", "O", "Y", "G", "B", "P"], CCOL = ["#ff3b3b", "#ff9a1f", "#ffe11f", "#2fd45a", "#2f8cff", "#b04dff"];
+function boardPx(f) { const b = GP.board, a = GP.adj; const x0 = b.x0 * f.w + a.dx, y0 = b.y0 * f.h + a.dy, wd = (b.x1 - b.x0) * f.w + a.sw, ht = (b.y1 - b.y0) * f.h + a.sh; return { x0, y0, cw: wd / b.cols, ch: ht / b.rows, rows: b.rows, cols: b.cols }; }
+function readGrid(f) {
+  const B = boardPx(f), g = [];
+  for (let r = 0; r < B.rows; r++) { g.push([]); for (let c = 0; c < B.cols; c++) {
+    const cx = B.x0 + (c + .5) * B.cw, cy = B.y0 + (r + .5) * B.ch, hw = B.cw * .22, hh = B.ch * .22;
+    const sx = Math.max(0, Math.round(cx - hw)), sy = Math.max(0, Math.round(cy - hh)), sw = Math.max(2, Math.round(hw * 2)), sh = Math.max(2, Math.round(hh * 2));
+    let d; try { d = f.x.getImageData(sx, sy, Math.min(sw, f.w - sx), Math.min(sh, f.h - sy)).data; } catch (e) { g[r].push(-1); continue; }
+    const cnt = [0, 0, 0, 0, 0, 0]; let tot = 0, ok = 0;
+    for (let i = 0; i < d.length; i += 8) { tot++; const [h, s, v] = hsv(d[i], d[i + 1], d[i + 2]); if (s > .5 && v > .45) { cnt[hueBin(h)]++; ok++; } }
+    if (!tot || ok / tot < .15) { g[r].push(-1); continue; }
+    let bi = 0; for (let i = 1; i < 6; i++) if (cnt[i] > cnt[bi]) bi = i; g[r].push(bi);
+  } }
+  return g;
+}
+const gQual = g => { let n = 0, t = 0; g.forEach(r => r.forEach(v => { t++; if (v >= 0) n++; })); return t ? n / t : 0; };
+function runsOf(g, R, C) {
+  const out = [];
+  for (let r = 0; r < R; r++) { let c = 0; while (c < C) { const t = g[r][c]; let e = c; while (e + 1 < C && g[r][e + 1] === t) e++; if (t >= 0 && e - c >= 2) { const cells = []; for (let k = c; k <= e; k++) cells.push(r * C + k); out.push(cells); } c = e + 1; } }
+  for (let c = 0; c < C; c++) { let r = 0; while (r < R) { const t = g[r][c]; let e = r; while (e + 1 < R && g[e + 1][c] === t) e++; if (t >= 0 && e - r >= 2) { const cells = []; for (let k = r; k <= e; k++) cells.push(k * C + c); out.push(cells); } r = e + 1; } }
+  return out;
+}
+function rankMoves(g) {
+  const R = g.length, C = g[0].length, mv = [];
+  for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) for (const [dr, dc] of [[0, 1], [1, 0]]) {
+    const r2 = r + dr, c2 = c + dc; if (r2 >= R || c2 >= C) continue;
+    const a = g[r][c], b = g[r2][c2]; if (a < 0 || b < 0 || a === b) continue;
+    g[r][c] = b; g[r2][c2] = a; const runs = runsOf(g, R, C); g[r][c] = a; g[r2][c2] = b;
+    if (!runs.length) continue;
+    const u = new Set(); let sum = 0, sc = 0; runs.forEach(x => { sum += x.length; x.forEach(i => u.add(i)); sc += x.length >= 5 ? 120 : x.length === 4 ? 45 : 12; });
+    if (u.size < sum) sc += 40;
+    sc += u.size * 2 + (r + r2) * .8;
+    mv.push({ r, c, r2, c2, sc });
+  }
+  return mv.sort((p, q) => q.sc - p.sc);
+}
+function swipeCells(f, m) {
+  const B = boardPx(f), P = (r, c) => [Math.round((B.x0 + (c + .5) * B.cw) * f.k), Math.round((B.y0 + (r + .5) * B.ch) * f.k)];
+  const [x1, y1] = P(m.r, m.c), [x2, y2] = P(m.r2, m.c2); return native("swipe", { x1, y1, x2, y2 });
+}
+function gPreview(f, g) {
+  const cv = $("gcv"), W = cv.width = 360, H = cv.height = Math.round(360 * f.h / f.w), x = cv.getContext("2d");
+  x.drawImage(f.c, 0, 0, W, H);
+  if (GP.board) { const B = boardPx(f), s = W / f.w; x.lineWidth = 1; x.strokeStyle = "#fff";
+    for (let r = 0; r < B.rows; r++) for (let c = 0; c < B.cols; c++) { x.strokeRect((B.x0 + c * B.cw) * s, (B.y0 + r * B.ch) * s, B.cw * s, B.ch * s);
+      if (g && g[r][c] >= 0) { x.fillStyle = CCOL[g[r][c]]; x.fillRect((B.x0 + (c + .5) * B.cw) * s - 3, (B.y0 + (r + .5) * B.ch) * s - 3, 7, 7); } } }
+}
+async function findBoard(f) {
+  const j = await gemJSON(f.b64, 'Yeh ek match-3 game (Candy Crush jaisa) ka screenshot hai. Sirf candies wale square grid ka tight bounding box do. JSON: {"found":true,"rows":int,"cols":int,"ymin":0-1000,"xmin":0-1000,"ymax":0-1000,"xmax":0-1000}. Agar board nahi dikh raha (menu, map, popup, loading) to {"found":false}.');
+  if (!j.found || !j.rows || !j.cols) return false;
+  GP.board = { rows: j.rows, cols: j.cols, x0: j.xmin / 1000, y0: j.ymin / 1000, x1: j.xmax / 1000, y1: j.ymax / 1000 };
+  store.set("saara_gboard", JSON.stringify(GP.board)); return true;
+}
+async function genericStep(f) {
+  const j = await gemJSON(f.b64, 'Tum ek mobile game khel rahi ho. Game: "' + GP.name + '". User ke rules: "' + (GP.rules || "koi nahi, screen dekh kar samjho") + '". Pichhle actions: ' + JSON.stringify(GP.hist.slice(-4)) + '. Screenshot dekh kar agla ek action chuno. Koi popup / Play / Continue / Next / OK / close button dikhe to use tap karo. JSON: {"action":"tap"|"swipe"|"wait"|"stop","x":0-1000,"y":0-1000,"x2":0-1000,"y2":0-1000,"why":"chhota karan"}. Agar "out of lives"/lives khatam ya game screen par hai hi nahi to "stop" do. Level complete ya failed popup mein Next/Retry/Play/Continue dabao.');
+  const X = v => Math.round(v / 1000 * f.w * f.k), Y = v => Math.round(v / 1000 * f.h * f.k);
+  GP.hist.push(j.action + ":" + (j.why || ""));
+  if (j.action === "tap") native("tap_xy", { x: X(j.x), y: Y(j.y) });
+  else if (j.action === "swipe") native("swipe", { x1: X(j.x), y1: Y(j.y), x2: X(j.x2), y2: Y(j.y2) });
+  gLog("🤖 " + j.action + " — " + (j.why || ""));
+  return j.action;
+}
+async function gameLoop() {
+  const candy = /candy|ক্যান্ডি|crush|क्रश|match/i.test(GP.name) || GP.name === "";
+  let lastKey = "", same = 0, lowQ = 0, noMove = 0;
+  while (GP.on && GP.moves < 3000 && Date.now() - GP.t0 < 5400000) {
+    let f; try { f = await frame(); } catch (e) { gLog("❌ " + e.message); break; }
+    try {
+      if (!candy) { const a = await genericStep(f); if (a === "stop") break; GP.moves++; await sleep(1400); continue; }
+      if (!GP.board && !(await findBoard(f))) { const a = await genericStep(f); if (a === "stop") { noMove++; if (noMove > 3) break; } await sleep(1800); continue; }
+      const g = readGrid(f); gPreview(f, g);
+      if (gQual(g) < .7) { if (++lowQ >= 2) { GP.board = null; lowQ = 0; gLog("Board dobara dhundh rahi hoon"); } await sleep(1200); continue; }
+      lowQ = 0;
+      const key = g.map(r => r.join("")).join("|"); same = key === lastKey ? same + 1 : 0; lastKey = key;
+      const mv = rankMoves(g);
+      if (!mv.length) { gLog("Koi chaal nahi mili, screen check kar rahi hoon"); const a = await genericStep(f); if (++noMove > 6) { gLog("Ruk gayi: chaal nahi mil rahi"); break; } await sleep(2000); continue; }
+      noMove = 0;
+      const m = mv[Math.min(same, mv.length - 1)];
+      swipeCells(f, m); GP.moves++;
+      gLog("#" + GP.moves + " (" + (m.r + 1) + "," + (m.c + 1) + ")→(" + (m.r2 + 1) + "," + (m.c2 + 1) + ") score " + Math.round(m.sc));
+      await sleep(3200);
+    } catch (e) { gLog("⚠ " + e.message); await sleep(2500); if (/API key/.test(e.message)) break; }
+  }
+  GP.on = false; $("gStart").textContent = "▶ Khelna shuru"; gLog("⏹ Game band (" + GP.moves + " chaal)");
+  if (HAS && !live && !offMode) Android.keepAlive(false);
+  if (live && ws && ws.readyState === 1) ws.send(JSON.stringify({ realtimeInput: { text: "[system] Game khelna ruk gaya, " + GP.moves + " chaal chali. User ko pyaar se batao." } }));
+}
+async function startGame(name, rules, delay) {
+  if (GP.on) return "pehle se khel rahi hoon";
+  if (name) GP.name = name; if (rules) GP.rules = rules;
+  store.set("saara_grules", GP.rules); $("grules").value = GP.rules; $("gname").value = GP.name;
+  if (!HAS || !Android.isAccessEnabled()) return "Phone control (Accessibility) ON nahi hai, pehle wo ON karo";
+  if (!$("key").value.trim()) return "Settings mein Gemini API key daalo";
+  GP.on = true; GP.moves = 0; GP.hist = []; GP.t0 = Date.now(); if (HAS) Android.keepAlive(true); $("gStart").textContent = "⏹ Roko";
+  gLog("▶ " + GP.name + " shuru. Game screen par rakho.");
+  if (!document.hidden && HAS) Android.minimize();
+  setTimeout(() => { if (GP.on) gameLoop(); }, delay || 3500);
+  return "game shuru ho gaya, ab main " + GP.name + " khel rahi hoon. Rukne ke liye bolo 'game roko'";
+}
+const stopGame = () => { GP.on = false; return "game rok diya"; };
+const openGame = () => { $("gname").value = GP.name; $("grules").value = GP.rules; openP("pGame"); };
+{ const c = document.createElement("button"); c.className = "chip"; c.textContent = "🎮 Game panel (Candy Crush auto-play, gaming tools)"; c.onclick = () => { closeP("pMenu"); openGame(); }; $("chips").appendChild(c); }
+["Candy Crush khelo, main aata hoon", "Game roko"].forEach(t => { const c = document.createElement("button"); c.className = "chip"; c.textContent = t; c.onclick = () => { closeP("pMenu"); openP("pChat"); sendText(t); }; $("chips").appendChild(c); });
+$("gStart").onclick = () => { if (GP.on) { stopGame(); return; } startGame($("gname").value.trim(), $("grules").value.trim()); };
+$("gShot").onclick = () => { toast("3 second mein game ka frame lungi, game kholo"); if (HAS) Android.minimize(); setTimeout(async () => { try { const f = await frame(); if (!GP.board) await findBoard(f); gPreview(f, GP.board ? readGrid(f) : null); } catch (e) { gLog("❌ " + e.message); } }, 3500); };
+$("gReset").onclick = () => { GP.board = null; GP.adj = { dx: 0, dy: 0, sw: 0, sh: 0 }; store.set("saara_gboard", "null"); store.set("saara_gadj", JSON.stringify(GP.adj)); toast("Board reset"); };
+document.querySelectorAll("[data-nudge]").forEach(b => b.onclick = () => { const [k, v] = b.dataset.nudge.split(":"); GP.adj[k] += +v; store.set("saara_gadj", JSON.stringify(GP.adj)); });
+
+/* ================= 50 GAMING TOOLS ================= */
+const GTOOLS = (() => {
+  const T = [], F = (i, n, l, f) => T.push([i, n, l, f]);
+  const D = "০১২৩৪৫৬৭৮৯", bn = s => String(s).replace(/\d/g, d => D[d]);
+  const nm = s => (String(s).replace(/[০-৯]/g, d => D.indexOf(d)).match(/-?\d+(\.\d+)?/g) || []).map(Number);
+  const r3 = x => Math.round(x * 1000) / 1000, pick = a => a[Math.random() * a.length | 0], gcd = (a, b) => b ? gcd(b, a % b) : a;
+  const ld = k => { try { return JSON.parse(store.get("saara_g_" + k, "[]")); } catch (e) { return []; } }, sv = (k, v) => store.set("saara_g_" + k, JSON.stringify(v));
+  const rnd = n => Math.random() * n | 0, sh = a => a.map(x => [Math.random(), x]).sort((p, q) => p[0] - q[0]).map(x => x[1]);
+  const KEYV = () => $("key").value.trim();
+  const say = (t) => toast(t);
+  async function gem(msgs) { const j = await gemJSON(null, msgs[0].parts[0].text + ' JSON: {"text":"..."}'); return j.text || JSON.stringify(j); }
+const WORDS=['Shadow','Viper','Blaze','Ghost','Storm','Hunter','Phantom','Raven','Titan','Ninja','Falcon','Wolf','Dragon','Reaper','Nova','Frost','Thunder','Cobra','Rogue','Sniper'];
+const MAPS=['ব্যারেন','ডেজার্ট','স্নো','সিটি','জঙ্গল','দ্বীপ','কারখানা','বন্দর','পাহাড়','ছাদ'];
+const WPN=['অ্যাসল্ট রাইফেল','স্নাইপার','শটগান','SMG','পিস্তল','মেলি','LMG','ক্রসবো'];
+const CHAL=['একটাও মৃত্যু ছাড়া ম্যাচ জেতো','শুধু পিস্তল দিয়ে খেলো','১০ মিনিট একদম চুপ থাকো (শুধু স্নাইপ)','প্রতি রাউন্ডে ১টা হেডশট','ফোন এক হাতে ধরে খেলো','শুধু মেলি ব্যবহার করো','কোনো হিল ছাড়া খেলো'];
+const TRV=[['দাবায় রাজা সর্বোচ্চ কয় ঘর চলতে পারে?','১'],['লুডুতে ডাইসে সর্বোচ্চ কত ওঠে?','৬'],['২০৪৮ গেমে প্রথমে কোন সংখ্যা জিতলে গেম জেতা ধরা হয়?','২০৪৮'],['ক্যারামে রানি কোন রঙের?','লাল'],['দাবার বোর্ডে মোট ঘর কয়টি?','৬৪'],['ম্যারিও গেমের নির্মাতা কোম্পানি কোনটি?','নিনটেন্ডো'],['টিক-ট্যাক-টো বোর্ড কত বাই কত?','৩×৩'],['দাবায় সবচেয়ে শক্তিশালী ঘুঁটি কোনটি?','মন্ত্রী (কুইন)']];
+const RID=[['যত নেবে তত বড় হবে, কিন্তু চোখে দেখা যায় না। কী?','গর্ত'],['আমার শহর আছে কিন্তু বাড়ি নেই, নদী আছে কিন্তু জল নেই। আমি কী?','মানচিত্র'],['যত শুকায় তত ভেজে। কী?','তোয়ালে']];
+const TIP=['ম্যাচের শুরুতেই মাইক/শব্দ শুনে শত্রুর দিক আন্দাজ করো','সবসময় কভারের পাশ দিয়ে উঁকি দাও, সামনে দিয়ে না','রিলোড করার আগে কভারে ঢোকো','টিমের সাথে কথা বলো, একা বীর হয়ো না','প্র্যাকটিস মোডে ১০ মিনিট এইম ওয়ার্মআপ করো','সেনসিটিভিটি ঘন ঘন বদলিও না'];
+function ttt(b,p){const L=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];const w=b=>{for(const[a,c,d]of L)if(b[a]&&b[a]==b[c]&&b[a]==b[d])return b[a];return b.includes('')?null:'D'};
+  const mm=(b,t)=>{const r=w(b);if(r)return[r==p?1:r=='D'?0:-1,-1];let bs=t==p?-2:2,bm=-1;for(let i=0;i<9;i++)if(!b[i]){b[i]=t;const v=mm(b,t=='X'?'O':'X')[0];b[i]='';if(t==p?v>bs:v<bs){bs=v;bm=i}}return[bs,bm]};return mm(b,p)[1]}
+F('🖥️','FPS → ফ্রেম টাইম','FPS',v=>{const f=nm(v)[0];return bn(f)+' FPS = প্রতি ফ্রেম '+r3(1000/f)+' ms'});
+F('📶','পিং মান যাচাই','পিং (ms)',v=>{const p=nm(v)[0];return bn(p)+'ms — '+(p<40?'দারুণ':p<80?'ভালো':p<150?'মোটামুটি':'খারাপ, ল্যাগ হবে')});
+F('🖱️','eDPI হিসাব','DPI, সেনসিটিভিটি',v=>{const[d,s]=nm(v);return'eDPI = '+r3(d*s)});
+F('🎯','K/D রেশিও','কিল, ডেথ',v=>{const[k,d]=nm(v);return'K/D = '+r3(k/(d||1))});
+F('🏆','উইন রেট %','জয়, মোট ম্যাচ',v=>{const[w,t]=nm(v);return'উইন রেট '+r3(w/t*100)+'%'});
+F('💀','হেডশট %','হেডশট কিল, মোট কিল',v=>{const[h,k]=nm(v);return'হেডশট '+r3(h/k*100)+'%'});
+F('💥','DPS হিসাব','ড্যামেজ, প্রতি সেকেন্ডে শট',v=>{const[d,r]=nm(v);return'DPS = '+r3(d*r)});
+F('⚔️','দুই অস্ত্রের DPS তুলনা','ড্যামেজ১ রেট১ ড্যামেজ২ রেট২',v=>{const[a,b,c,d]=nm(v),x=a*b,y=c*d;return'১ম: '+r3(x)+', ২য়: '+r3(y)+' → '+(x>y?'১ম ভালো':y>x?'২য় ভালো':'সমান')});
+F('📊','র‍্যাংকে ওঠার ম্যাচ','বর্তমান পয়েন্ট, দরকারি পয়েন্ট, প্রতি জয়ে পাও',v=>{const[c,n,g]=nm(v);return'আরও '+bn(Math.ceil(Math.max(0,n-c)/g))+'টা জয় লাগবে'});
+F('👥','টিম ভাগ করো (র‍্যান্ডম)','নামগুলো কমা দিয়ে',v=>{const a=sh(v.split(/[,،\n]+/).map(x=>x.trim()).filter(Boolean)),m=Math.ceil(a.length/2);return'টিম A: '+a.slice(0,m).join(', ')+'\nটিম B: '+a.slice(m).join(', ')});
+F('🏷️','স্কোয়াড নাম','',()=>pick(WORDS)+' '+pick(['Squad','Clan','Force','Legion','Esports','Gang']));
+F('🆔','গেমার ট্যাগ','',()=>pick(WORDS)+pick(['_','X','xD','_BD'])+(10+rnd(990)));
+F('🔫','র‍্যান্ডম লোডআউট','',()=>'প্রাইমারি: '+pick(WPN)+'\nসেকেন্ডারি: '+pick(WPN)+'\nম্যাপ: '+pick(MAPS));
+F('🗺️','র‍্যান্ডম ম্যাপ','',()=>pick(MAPS));
+F('🏟️','টুর্নামেন্ট ব্র্যাকেট','টিমগুলো কমা দিয়ে',v=>{const a=sh(v.split(',').map(x=>x.trim()).filter(Boolean));let o='রাউন্ড ১:\n';for(let i=0;i<a.length;i+=2)o+=a[i]+' vs '+(a[i+1]||'বাই')+'\n';return o});
+F('🔀','টিম শাফল','নামগুলো কমা দিয়ে',v=>sh(v.split(',').map(x=>x.trim()).filter(Boolean)).join(' → '));
+F('🎲','D20 ডাইস','',()=>'D20: '+bn(1+rnd(20)));
+F('🎲','কয়টা ডাইস ছোড়ো','কয়টা ডাইস?',v=>{const n=Math.min(20,nm(v)[0]||1),a=Array.from({length:n},()=>1+rnd(6));return a.map(bn).join(' + ')+' = '+bn(a.reduce((x,y)=>x+y,0))});
+F('✊','পাথর-কাগজ-কাঁচি','পাথর / কাগজ / কাঁচি',v=>{const o=['পাথর','কাগজ','কাঁচি'],u=o.indexOf(v.trim()),c=rnd(3);if(u<0)return'পাথর, কাগজ বা কাঁচি লেখো';return'আমি: '+o[c]+' — '+(u==c?'ড্র':(u-c+3)%3==1?'তুমি জিতলে!':'আমি জিতলাম!')});
+let GUESS=1+rnd(100);
+F('🔢','সংখ্যা অনুমান (১-১০০)','তোমার অনুমান',v=>{const g=nm(v)[0];if(g==GUESS){GUESS=1+rnd(100);return'ঠিক! নতুন সংখ্যা ভাবলাম'}return g<GUESS?'আরও বড়':'আরও ছোট'});
+F('⏰','গেমিং ব্রেক রিমাইন্ডার','কত মিনিট পর?',v=>{const m=nm(v)[0];setTimeout(()=>say('গেম থামাও, একটু বিশ্রাম নাও!'),m*6e4);return bn(m)+' মিনিট পর মনে করিয়ে দেব'});
+F('⏱️','খেলার সময় যোগ করো','কত মিনিট খেলেছ?',v=>{const a=ld('playt');a.push(nm(v)[0]);sv('playt',a);return'যোগ হয়েছে'});
+F('🕹️','মোট খেলার সময়','',()=>{const t=ld('playt').reduce((a,b)=>a+b,0);return bn(Math.floor(t/60))+' ঘণ্টা '+bn(t%60)+' মিনিট'});
+F('📚','গেম ব্যাকলগ যোগ','গেমের নাম',v=>{const a=ld('blog');a.push(v);sv('blog',a);return'যোগ হয়েছে'});
+F('📃','গেম ব্যাকলগ দেখো','',()=>ld('blog').map((x,i)=>bn(i+1)+'. '+x).join('\n')||'খালি');
+F('🥇','স্কোর সেভ','গেমের নাম, স্কোর',v=>{const a=ld('hs');a.push(v);sv('hs',a);return'সেভ হয়েছে'});
+F('🏅','সব স্কোর দেখো','',()=>ld('hs').join('\n')||'কোনো স্কোর নেই');
+F('⭐','XP লেভেল হিসাব','মোট XP (প্রতি লেভেল ১০০০)',v=>{const x=nm(v)[0];return'লেভেল '+bn(Math.floor(x/1000)+1)+', পরের লেভেলে আরও '+bn(1000-x%1000)+' XP'});
+F('🎁','লুট ড্রপ সিমুলেশন','ড্রপ চান্স %, কতবার',v=>{const[c,n]=nm(v);let h=0;for(let i=0;i<n;i++)if(Math.random()*100<c)h++;return bn(n)+' বারে পেলে '+bn(h)+' বার'});
+F('🎰','গাচা/স্পিনে পাওয়ার সম্ভাবনা','চান্স %, স্পিন',v=>{const[c,n]=nm(v);return'অন্তত ১বার পাওয়ার সম্ভাবনা '+r3((1-(1-c/100)**n)*100)+'%'});
+F('💢','ক্রিটিক্যাল হিট গড় ড্যামেজ','বেস ড্যামেজ, ক্রিট%, ক্রিট গুণক',v=>{const[d,c,m]=nm(v);return'গড় ড্যামেজ '+r3(d*(1+c/100*(m-1)))});
+F('⬇️','গেম ডাউনলোড সময়','সাইজ(GB), স্পিড(Mbps)',v=>{const[g,s]=nm(v),m=g*8192/s/60;return'প্রায় '+r3(m)+' মিনিট'});
+F('💾','কয়টা গেম ধরবে','ফাঁকা স্টোরেজ(GB), গেমের সাইজ(GB)',v=>{const[a,b]=nm(v);return bn(Math.floor(a/b))+'টা গেম ধরবে'});
+F('🔋','ব্যাটারিতে কতক্ষণ খেলা যাবে','ব্যাটারি mAh, ঘণ্টায় খরচ mAh',v=>{const[a,b]=nm(v);return'প্রায় '+r3(a/b)+' ঘণ্টা'});
+F('🔄','রিফ্রেশ রেট → ফ্রেম টাইম','Hz',v=>{const h=nm(v)[0];return bn(h)+'Hz = '+r3(1000/h)+' ms'});
+F('🖼️','রেজোলিউশন পিক্সেল','চওড়া, উচ্চতা',v=>{const[w,h]=nm(v);return bn(w*h)+' পিক্সেল ('+r3(w*h/1e6)+' মেগাপিক্সেল)'});
+F('📺','অ্যাসপেক্ট রেশিও','চওড়া, উচ্চতা',v=>{const[w,h]=nm(v),g=gcd(w,h);return bn(w/g)+':'+bn(h/g)});
+F('💎','ডায়মন্ড/UC প্রতি টাকা','মোট ডায়মন্ড, দাম(৳)',v=>{const[d,p]=nm(v);return'প্রতি ৳১-এ '+r3(d/p)+'টা; প্রতিটার দাম ৳'+r3(p/d)});
+F('🧾','দুই টপ-আপ প্যাকের তুলনা','ডায়মন্ড১ দাম১ ডায়মন্ড২ দাম২',v=>{const[a,b,c,d]=nm(v),x=a/b,y=c/d;return x>y?'১ম প্যাক বেশি লাভজনক':y>x?'২য় প্যাক বেশি লাভজনক':'সমান'});
+F('🔥','র‍্যান্ডম চ্যালেঞ্জ','',()=>pick(CHAL));
+F('🎭','টিম ট্রুথ অর ডেয়ার','',()=>pick(['সত্য: তোমার সবচেয়ে লজ্জার গেমিং মুহূর্ত কী?','সাহস: টিমকে ১টা মজার সাউন্ড করে শোনাও','সত্য: কোন গেমে সবচেয়ে বেশি টাকা খরচ করেছ?','সাহস: ১ রাউন্ড উল্টো হাতে খেলো']));
+F('🧩','ধাঁধা','',()=>{const r=pick(RID);return r[0]+'\n(উত্তর: '+r[1]+')'});
+F('❓','গেম ট্রিভিয়া','',()=>{const r=pick(TRV);return r[0]+'\n(উত্তর: '+r[1]+')'});
+F('♟️','দাবার টিপস','',()=>pick(['কেন্দ্র দখলে রাখো','প্রথমে ঘোড়া ও গজ নামাও','বারবার একই ঘুঁটি চালিও না','আগে রাজাকে কাস্টল করে নিরাপদ করো','প্রতিটা চালের আগে প্রতিপক্ষের হুমকি দেখো']));
+F('🎯','লুডু: কত চালে ঘর শেষ','ঘর বাকি',v=>{const n=nm(v)[0];return'গড়ে প্রায় '+bn(Math.ceil(n/3.5))+' চাল লাগবে'});
+F('⭕','টিক-ট্যাক-টো সেরা চাল','৯ ঘর (X/O/.) আর কার পালা। যেমন: X.O..X..O X',v=>{const[s,p]=v.trim().split(/\s+/);if(!s||s.length!=9)return'৯ অক্ষর দাও, যেমন X.O..X..O X';const b=[...s].map(c=>c=='.'?'':c.toUpperCase());const m=ttt(b,(p||'X').toUpperCase());return m<0?'কোনো চাল নেই':'ঘর নম্বর '+bn(m+1)+' (১-৯, বাঁ-ওপর থেকে)'});
+F('🧠','মেমরি চ্যালেঞ্জ নম্বর','কয় অঙ্কের?',v=>{const n=Math.min(12,nm(v)[0]||6);return Array.from({length:n},()=>rnd(10)).map(bn).join(' ')+'\n(মুখস্থ করে চোখ বন্ধ করে বলো)'});
+F('💡','গেমিং টিপস (র‍্যান্ডম)','',()=>pick(TIP));
+F('🤖','গেমের টিপস (AI)','গেমের নাম',async v=>{if(!KEYV())throw new Error('⚙️ এ Gemini Key দাও');return await gem([{role:'user',parts:[{text:v+' গেমের জন্য নতুন খেলোয়াড়ের ৫টা কাজের টিপস বাংলায় ছোট করে দাও।'}]}],'',true)});
+F('📖','গেমের নিয়ম বোঝাও (AI)','গেমের নাম',async v=>{if(!KEYV())throw new Error('⚙️ এ Gemini Key দাও');return await gem([{role:'user',parts:[{text:v+' গেমের নিয়ম সহজ বাংলায় ধাপে ধাপে বুঝিয়ে দাও।'}]}],'',true)});
+
+  return T;
+})();
+
+$("gtsel").innerHTML = ""; GTOOLS.forEach((t, i) => { const o = document.createElement("option"); o.value = i; o.textContent = t[0] + " " + t[1]; $("gtsel").appendChild(o); });
+const gtHint = () => { $("gtin").placeholder = GTOOLS[$("gtsel").value][2] || "(ইনপুট লাগবে না)"; }; $("gtsel").onchange = gtHint; gtHint();
+$("gtrun").onclick = async () => { try { $("gtout").textContent = "…"; const r = await GTOOLS[$("gtsel").value][3]($("gtin").value); $("gtout").textContent = String(r).replace(/\d+/g, m => m); } catch (e) { $("gtout").textContent = "⚠ " + e.message; } };
+
+/* ================= OFFLINE MODE (net ke bina simple commands) ================= */
+let offMode = false, offSpeaking = false, offPending = null, offWarned = false, offStopAfter = false, offTok = 0;
+const SL = () => $("lang").value;
+const T = (h, b, e, hi) => ({ hinglish: h, bn: b, en: e, hi: hi });
+const R = {
+  start: T("Offline mode chalu. Seedhe commands bolo.", "অফলাইন মোড চালু। সরাসরি কমান্ড বলো।", "Offline mode on. Say a simple command.", "ऑफलाइन मोड चालू। सीधे कमांड बोलो।"),
+  done: T("Ho gaya.", "হয়ে গেছে।", "Done.", "हो गया।"),
+  torchOn: T("Torch jala di.", "টর্চ জ্বালিয়ে দিলাম।", "Torch is on.", "टॉर्च जला दी।"),
+  torchOff: T("Torch band kar di.", "টর্চ বন্ধ করলাম।", "Torch is off.", "टॉर्च बंद कर दी।"),
+  battery: T(p => "Battery " + p + " percent hai.", p => "ব্যাটারি " + p + " শতাংশ আছে।", p => "Battery is at " + p + " percent.", p => "बैटरी " + p + " प्रतिशत है।"),
+  time: T(s => "Abhi " + s + " baje hain.", s => "এখন সময় " + s + "।", s => "It is " + s + ".", s => "अभी " + s + " हुए हैं।"),
+  date: T(s => "Aaj " + s + " hai.", s => "আজ " + s + "।", s => "Today is " + s + ".", s => "आज " + s + " है।"),
+  alarm: T(s => s + " ka alarm laga diya.", s => s + " এর অ্যালার্ম সেট করলাম।", s => "Alarm set for " + s + ".", s => s + " का अलार्म लगा दिया।"),
+  alarmNo: T("Kitne baje ka alarm? Jaise: subah 6 baje ka alarm lagao.", "কয়টার অ্যালার্ম? যেমন: সকাল ৬টার অ্যালার্ম দাও।", "What time for the alarm? For example: alarm at 6 AM.", "कितने बजे का अलार्म? जैसे: सुबह 6 बजे का अलार्म लगाओ।"),
+  timer: T(s => s + " ka timer laga diya.", s => s + " এর টাইমার দিলাম।", s => "Timer set for " + s + ".", s => s + " का टाइमर लगा दिया।"),
+  timerNo: T("Kitne minute ka timer? Jaise: 10 minute ka timer.", "কত মিনিটের টাইমার? যেমন: ১০ মিনিটের টাইমার।", "How long? For example: timer for 10 minutes.", "कितने मिनट का टाइमर? जैसे: 10 मिनट का टाइमर।"),
+  vol: T(n => "Volume " + n + " percent.", n => "ভলিউম " + n + " শতাংশ।", n => "Volume " + n + " percent.", n => "वॉल्यूम " + n + " प्रतिशत।"),
+  opening: T(a => a + " khol rahi hoon.", a => a + " খুলছি।", a => "Opening " + a + ".", a => a + " खोल रही हूँ।"),
+  appNo: T(a => a + " app nahi mila.", a => a + " অ্যাপ পাইনি।", a => "I could not find " + a + ".", a => a + " ऐप नहीं मिला।"),
+  confirmCall: T(n => n + " ko call karun? Haan ya na bolo.", n => n + " কে কল করব? হ্যাঁ বা না বলো।", n => "Call " + n + "? Say yes or no.", n => n + " को कॉल करूँ? हाँ या ना बोलो।"),
+  calling: T(n => n + " ko call laga rahi hoon.", n => n + " কে কল করছি।", n => "Calling " + n + ".", n => n + " को कॉल लगा रही हूँ।"),
+  callNo: T("Kisko call karna hai? Naam ya number bolo.", "কাকে কল করব? নাম বা নম্বর বলো।", "Who should I call? Say a name or number.", "किसे कॉल करना है? नाम या नंबर बोलो।"),
+  cancelled: T("Theek hai, cancel.", "ঠিক আছে, বাতিল।", "Okay, cancelled.", "ठीक है, रद्द।"),
+  location: T(s => "Aap yahan ho: " + s, s => "তুমি এখানে আছো: " + s, s => "You are at " + s, s => "आप यहाँ हैं: " + s),
+  weather: T((t, d) => "Abhi " + t + ", " + d + ".", (t, d) => "এখন " + t + ", " + d + "।", (t, d) => "Right now " + t + ", " + d + ".", (t, d) => "अभी " + t + ", " + d + "।"),
+  bye: T("Alvida! Phir milte hain.", "বিদায়! আবার কথা হবে।", "Bye! Talk soon.", "अलविदा! फिर मिलते हैं।"),
+  hello: T("Hello! Main offline mode mein hoon. Torch, alarm, timer, app kholna jaise commands bolo.", "হ্যালো! আমি অফলাইন মোডে আছি। টর্চ, অ্যালার্ম, টাইমার, অ্যাপ খোলার মতো কমান্ড বলো।", "Hello! I am in offline mode. Try commands like torch, alarm, timer or open an app.", "नमस्ते! मैं ऑफलाइन मोड में हूँ। टॉर्च, अलार्म, टाइमर, ऐप खोलना जैसे कमांड बोलो।"),
+  who: T("Main Saara hoon. Net ho to Gemini se baat karti hoon, warna offline commands chalati hoon.", "আমি সারা। নেট থাকলে Gemini দিয়ে কথা বলি, না থাকলে অফলাইন কমান্ড চালাই।", "I am Saara. With internet I talk using Gemini, otherwise I run offline commands.", "मैं सारा हूँ। नेट हो तो Gemini से बात करती हूँ, वरना ऑफलाइन कमांड चलाती हूँ।"),
+  help: T("Main torch, battery, samay, alarm, timer, volume, app kholna, call, YouTube, search, rasta, screenshot, lock, scroll aur settings kar sakti hoon.", "আমি টর্চ, ব্যাটারি, সময়, অ্যালার্ম, টাইমার, ভলিউম, অ্যাপ খোলা, কল, ইউটিউব, সার্চ, রাস্তা, স্ক্রিনশট, লক, স্ক্রল আর সেটিংস করতে পারি।", "I can do torch, battery, time, alarm, timer, volume, open apps, call, YouTube, search, directions, screenshot, lock, scroll and settings.", "मैं टॉर्च, बैटरी, समय, अलार्म, टाइमर, वॉल्यूम, ऐप खोलना, कॉल, यूट्यूब, सर्च, रास्ता, स्क्रीनशॉट, लॉक, स्क्रॉल और सेटिंग्स कर सकती हूँ।"),
+  fallback: T("Offline mode mein ye samajh nahi paayi. Torch, alarm, timer, volume ya app kholne jaise commands bolo.", "অফলাইন মোডে এটা বুঝতে পারিনি। টর্চ, অ্যালার্ম, টাইমার, ভলিউম বা অ্যাপ খোলার মতো কমান্ড বলো।", "I did not get that in offline mode. Try torch, alarm, timer, volume or open an app.", "ऑफलाइन मोड में यह समझ नहीं आया। टॉर्च, अलार्म, टाइमर, वॉल्यूम या ऐप खोलने जैसे कमांड बोलो।"),
+  err: T(m => "Kuch gadbad hui: " + m, m => "কিছু সমস্যা হয়েছে: " + m, m => "Something went wrong: " + m, m => "कुछ गड़बड़ हुई: " + m)
+};
+function say(k, ...a) { const v = R[k][SL()] || R[k].en; return typeof v === "function" ? v(...a) : v; }
+function recLang() { const o = $("olang").value; return o !== "auto" ? o : ({ hinglish: "en-IN", bn: "bn-BD", en: "en-US", hi: "hi-IN" })[SL()] || "en-IN"; }
+
+function speakOff(t) {
+  bubble("bot", t); setCap(t, 4500);
+  if (!HAS) return;
+  const tok = ++offTok;
+  offSpeaking = true; setStatus("Saara bol rahi hai...");
+  try { Android.stopListen(); } catch (e) {}
+  Android.speak(t, ({ hinglish: "en-IN", bn: "bn-IN", en: "en-US", hi: "hi-IN" })[SL()] || "en-IN");
+  setTimeout(() => { if (offSpeaking && tok === offTok) { offSpeaking = false; offNext(); } }, 15000);
+}
+function offNext() {
+  if (!offMode) return;
+  if (offStopAfter) { offStopAfter = false; stop(); if (HAS) Android.minimize(); return; }
+  setStatus("Offline: sun rahi hoon...");
+  setTimeout(() => { if (offMode && !offSpeaking) Android.listen(recLang()); }, 250);
+}
+window.onOfflineSpoke = () => { offSpeaking = false; offNext(); };
+window.onOfflineSpeech = txt => {
+  if (!offMode) return;
+  txt = (txt || "").trim();
+  if (!txt) { offNext(); return; }
+  bubble("me", txt); handleOffline(txt, true);
+};
+window.onOfflineError = code => {
+  if (!offMode || offSpeaking) return;
+  if ((code === 2 || code === 1 || code === 12 || code === 13) && !offWarned) {
+    offWarned = true;
+    toast("Offline voice pack chahiye: Google app > Settings > Voice > Offline speech recognition");
+    log("Offline voice pack nahi mila (error " + code + ").");
+  }
+  const d = (code === 7 || code === 6) ? 250 : (code === 9 ? 4000 : 1500);
+  setTimeout(() => { if (offMode && !offSpeaking) Android.listen(recLang()); }, d);
+};
+function startOffline() {
+  if (!HAS) { toast("Offline mode sirf Saara app ke andar chalta hai"); return; }
+  offMode = true; offWarned = false; offStopAfter = false;
+  Android.keepAlive(true);
+  $("bSpeak").classList.add("live");
+  log("Offline mode chalu.");
+  if (pending) { const p = pending; pending = null; handleOffline(p, false); }
+  else speakOff(say("start"));
+}
+
+const NW = [
+  ["\\b(?:one|ek)\\b|এক|एक", 1], ["\\btwo\\b|দুই|\\bdo(?=\\s*(?:baje|bje|minute|min|ghante))|दो(?=\\s*(?:बजे|मिनट|घंटे))", 2],
+  ["\\b(?:three|teen|tin)\\b|তিন|तीन", 3], ["\\b(?:four|char)\\b|চার|चार", 4], ["\\b(?:five|paanch|panch)\\b|পাঁচ|পাচ|पांच|पाँच", 5],
+  ["\\b(?:six|chhe|chhah|che)\\b|ছয়|ছয়|छह|छः", 6], ["\\b(?:seven|saat)\\b|সাত|सात", 7], ["\\b(?:eight|aath)\\b|আট|आठ", 8],
+  ["\\b(?:nine|nau)\\b|নয়|नौ", 9], ["\\b(?:ten|das)\\b|দশ|दस", 10], ["\\b(?:eleven|gyarah)\\b|এগারো|ग्यारह", 11],
+  ["\\b(?:twelve|barah)\\b|বারো|बारह", 12], ["\\b(?:fifteen|pandrah)\\b|পনেরো|পনের|पंद्रह", 15], ["\\b(?:twenty|bees)\\b|বিশ|बीस", 20],
+  ["\\b(?:thirty|tees)\\b|তিরিশ|ত্রিশ|तीस", 30], ["paintalis|পঁয়তাল্লিশ|पैंतालीस", 45]
+];
+const normNum = s => { NW.forEach(([re, v]) => { s = s.replace(new RegExp(re, "g"), " " + v + " "); }); return s.replace(/\s+/g, " "); };
+const hhmm = (h, m) => { const ap = h >= 12 ? "PM" : "AM"; return (h % 12 || 12) + ":" + String(m).padStart(2, "0") + " " + ap; };
+const APPS = [
+  [/youtube|ইউটিউব|यूट्यूब/, "YouTube"], [/whatsapp|হোয়াটস ?অ্যাপ|व्हाट्सऐप|वॉट्सऐप/, "WhatsApp"], [/chrome|ক্রোম|क्रोम/, "Chrome"],
+  [/facebook|ফেসবুক|फेसबुक/, "Facebook"], [/instagram|ইনস্টাগ্রাম|इंस्टाग्राम/, "Instagram"], [/gmail|জিমেইল|जीमेल/, "Gmail"],
+  [/maps?\b|ম্যাপ|मैप/, "Maps"], [/gallery|গ্যালারি|गैलरी/, "Gallery"], [/telegram|টেলিগ্রাম|टेलीग्राम/, "Telegram"],
+  [/calculator|ক্যালকুলেটর|कैलकुलेटर/, "Calculator"], [/clock|ঘড়ি|घड़ी/, "Clock"], [/messages?|মেসেজ|मैसेज/, "Messages"],
+  [/play ?store|প্লে স্টোর|प्ले स्टोर/, "Play Store"], [/files?\b|ফাইল|फाइल/, "Files"], [/contacts?|কন্টাক্ট|कॉन्टैक्ट/, "Contacts"],
+  [/settings?|সেটিংস|सेटिंग/, "Settings"], [/camera|ক্যামেরা|कैमरा/, "Camera"], [/phone|ফোন|फोन/, "Phone"]
+];
+const STOPW = /\b(?:please|kar|karo|kardo|do|de|dena|mere|liye|ko|ka|ki|ke|ek|a|the|me|mein|par|pe|on|in|to|se|app|application|open|launch|start|kholo|khol|call|play|search|chalao|bajao|dhundo|youtube|google|rasta|batao|navigate|directions?|route)\b|খোলো|খোল|খুলে|দাও|করো|কর|কে|কল|ফোন|এ|চালাও|বাজাও|খোঁজো|সার্চ|ইউটিউবে|ইউটিউব|রাস্তা|বলো|दो|करो|कर|को|का|की|खोलो|खोल|चालू|कॉल|चलाओ|बजाओ|खोजो|यूट्यूब|रास्ता|बताओ|पर|में/g;
+const clean = s => s.replace(STOPW, " ").replace(/\s+/g, " ").trim();
+function reply(t) { speakOff(t); }
+
+function handleOffline(raw, fromVoice) {
+  let t = raw.toLowerCase().replace(/[০-৯]/g, c => "০১২৩৪৫৬৭৮৯".indexOf(c)).replace(/[०-९]/g, c => "०१२३४५६७८९".indexOf(c)).replace(/[,!?।]/g, " ").replace(/\s+/g, " ").trim();
+  const has = re => re.test(t);
+  try {
+    if (offPending) {
+      const p = offPending; offPending = null;
+      if (has(/^(yes|yeah|yep|ok|okay|haan|han|ha|haa|theek|हाँ|हां|हा|ठीक|जी|হ্যাঁ|হ্যা|হাঁ|হা|ঠিক|হুম)/)) {
+        const r = native("call_number", { to: p.to });
+        return reply(r === "ok" ? say("calling", p.to) : say("err", r));
+      }
+      return reply(say("cancelled"));
+    }
+    if (has(/off ho|band ho|\bbye\b|chup ho|stop listening|shut ?down|বন্ধ হও|বন্ধ হয়ে যাও|অফ হয়ে যাও|অফ হও|বাই|চুপ হও|বিদায়|बंद हो|ऑफ हो|चुप हो|अलविदा|बाय/)) { offStopAfter = true; return reply(say("bye")); }
+    if (has(/(candy|crush|ক্যান্ডি|ক্রাশ|कैंडी|क्रश).*(khel|খেল|खेल|play)|(khel|খেল|खेल|play).*(candy|crush|ক্যান্ডি|ক্রাশ|कैंडी|क্रश)|game khel|গেম খেল/)) { startGame("Candy Crush", "").then(m => toast(m)); return reply("জান, গেম খেলছি। থামাতে বলো গেম রোকো।"); }
+    if (has(/game roko|game band|গেম থামাও|গেম বন্ধ|गेम रोको/)) { stopGame(); return reply("থামালাম সোনা।"); }
+    if (has(/kya kya|kya kar sakti|what can you|help|কি কি পারো|কী কী পারো|সাহায্য|क्या कर सकती|मदद/)) return reply(say("help"));
+    if (has(/tum kaun|who are you|তুমি কে|तुम कौन|aap kaun/)) return reply(say("who"));
+    if (has(/^(hello|hi|hey|hallo)(\s|$)|^(হ্যালো|হাই|নমস্কার|নমস্তে|नमस्ते|हैलो|हेलो)|kaisi ho|কেমন আছ|कैसी हो/)) return reply(say("hello"));
+
+    if (has(/torch|flash ?light|টর্চ|ফ্ল্যাশ ?লাইট|टॉर्च|फ्लैश/)) {
+      const off = has(/\boff\b|band|bondho|nibha|bujha|বন্ধ|নিভা|নেভা|बंद|बुझा|ऑफ/);
+      native("flashlight", { on: !off }); return reply(say(off ? "torchOff" : "torchOn"));
+    }
+    if (has(/battery|ব্যাটারি|ব্যাটারী|बैटरी|charge/)) {
+      const r = native("battery"); const m = String(r).match(/(\d+)%/); return reply(say("battery", m ? m[1] : r));
+    }
+    if (has(/alarm|অ্যালার্ম|এলার্ম|अलार्म|alaram/)) {
+      const n = normNum(t); const m = n.match(/(\d{1,2})(?:[:.](\d{2}))?/);
+      if (!m) return reply(say("alarmNo"));
+      let h = +m[1], mi = m[2] ? +m[2] : (has(/saade|sade|সাড়ে|साढ़े/) ? 30 : 0);
+      const pm = has(/\bpm\b|p\.m|sham|shaam|raat|dopahar|dupur|bikel|বিকাল|বিকেল|সন্ধ্যা|রাত|দুপুর|शाम|रात|दोपहर/);
+      const am = has(/\bam\b|a\.m|subah|sobere|সকাল|ভোর|सुबह|भोर/);
+      if (pm && h < 12) h += 12;
+      if ((am || has(/raat|রাত|रात/)) && h === 12) h = 0;
+      if (h > 23) return reply(say("alarmNo"));
+      native("set_alarm", { hour: h, minute: mi, label: "Saara" }); return reply(say("alarm", hhmm(h, mi)));
+    }
+    if (has(/timer|টাইমার|टाइमर/) || has(/\d+\s*(?:minute|min|মিনিট|मिनट|second|sec|সেকেন্ড|ঘণ্টা|ঘন্টা|hour)\s*(?:baad|bad|later|পরে|बाद)/)) {
+      const n = normNum(t); const m = n.match(/(\d+(?:\.\d+)?)\s*(ঘণ্টা|ঘন্টা|ghanta|ghante|ghantey|hours?|hrs?|घंटा|घंटे|মিনিট|minutes?|mins?|मिनट|সেকেন্ড|seconds?|secs?|सेकंड|सेकेंड)?/);
+      if (!m) return reply(say("timerNo"));
+      const u = m[2] || "min"; let sec = +m[1] * 60, name = m[1] + " minute";
+      if (/ঘণ্টা|ঘন্টা|ghant|hour|hr|घंट/.test(u)) { sec = +m[1] * 3600; name = m[1] + " hour"; }
+      else if (/সেকেন্ড|sec|सेक/.test(u)) { sec = +m[1]; name = m[1] + " second"; }
+      native("set_timer", { seconds: Math.round(sec), label: "Saara" }); return reply(say("timer", name));
+    }
+    if (has(/\bdate\b|tareekh|taarikh|তারিখ|तारीख|what day|কি বার|কী বার/)) {
+      return reply(say("date", new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })));
+    }
+    if (has(/\btime\b|samay|kitne baje|কয়টা|কটা বাজে|সময়|টাইম|कितने बजे|समय|क्या टाइम/)) {
+      const d = new Date(); return reply(say("time", hhmm(d.getHours(), d.getMinutes())));
+    }
+    if (has(/weather|mausam|আবহাওয়া|मौसम|temperature/)) return reply(say("weather", $("wT").textContent, $("wD").textContent));
+    if (has(/location|where am i|kahan hoon|কোথায় আছি|লোকেশন|मैं कहाँ|लोकेशन/)) {
+      const r = String(native("get_location")); const a = r.replace(/^-?\d+\.\d+,-?\d+\.\d+\s*/, "").trim(); return reply(say("location", a || r));
+    }
+    if (has(/volume|ভলিউম|आवाज़|आवाज|awaaz|awaz/)) {
+      let lvl = 50; const n = t.match(/\d+/);
+      if (n) lvl = Math.min(100, +n[0]);
+      else if (has(/mute|silent|म्यूट|সাইলেন্ট|মিউট/)) lvl = 0;
+      else if (has(/full|max|ফুল|পুরো|फुल/)) lvl = 100;
+      else if (has(/badha|zyada|jyada|increase|\bup\b|louder|বাড়া|বেশি|बढ़ा|ज्यादा/)) lvl = 85;
+      else if (has(/\bkam\b|decrease|\bdown\b|lower|কমা|কম|घटा|कम/)) lvl = 30;
+      native("set_volume", { level: lvl }); return reply(say("vol", lvl));
+    }
+    if (has(/(next|agla|aage|পরের|पिछला|अगला).*(song|gaana|gana|গান|गाना|track)|(song|gaana|gana|গান|गाना).*(next|agla|পরের|अगला)/)) { native("media_control", { action: "next" }); return reply(say("done")); }
+    if (has(/(previous|pichla|আগের|পেছনের|पिछला).*(song|gaana|গান|गाना)/)) { native("media_control", { action: "previous" }); return reply(say("done")); }
+    if (has(/(song|gaana|music|গান|गाना|म्यूजिक).*(pause|ruk|rok|থামাও|বন্ধ|रोक|बंद)|(pause|ruk|rok|থামাও|रोक)\s*(song|gaana|music|গান|गाना)?$/)) { native("media_control", { action: "pause" }); return reply(say("done")); }
+    if (has(/screenshot|স্ক্রিনশট|स्क्रीनशॉट|screen shot/)) { native("press_button", { button: "screenshot" }); return reply(say("done")); }
+    if (has(/notification|নোটিফিকেশন|नोटिफिकेशन/)) { native("press_button", { button: "notifications" }); return reply(say("done")); }
+    if (has(/scroll|স্ক্রল|स्क्रॉल|neeche|niche|নিচে|नीचे|upar|ওপরে|উপরে|ऊपर/)) {
+      native("scroll", { direction: has(/upar|\bup\b|ওপরে|উপরে|ऊपर/) ? "up" : "down" }); return reply(say("done"));
+    }
+    if (has(/\block\b|screen band|স্ক্রিন বন্ধ|লক|ताला|स्क्रीन बंद/)) { native("press_button", { button: "lock" }); return reply(say("done")); }
+    if (has(/\bhome\b|হোম|होम/)) { native("press_button", { button: "home" }); return reply(say("done")); }
+    if (has(/\bback\b|পেছনে|ফিরে যাও|वापस|peeche/)) { native("press_button", { button: "back" }); return reply(say("done")); }
+    if (has(/wi-?fi|ওয়াইফাই|वाईफाई|वाई-फाई/)) { native("open_settings", { page: "wifi" }); return reply(say("done")); }
+    if (has(/bluetooth|ব্লুটুথ|ब्लूटूथ/)) { native("open_settings", { page: "bluetooth" }); return reply(say("done")); }
+
+    if (has(/\bcall\b|কল|ফোন করো|फोन करो|कॉल|dial|phone kar/)) {
+      const digits = t.replace(/[^\d+]/g, "");
+      let who = digits.length >= 5 ? digits : clean(t.replace(/phone kar|ফোন করো|फोन करो/g, " "));
+      if (!who) return reply(say("callNo"));
+      offPending = { type: "call", to: who }; return reply(say("confirmCall", who));
+    }
+    if (has(/(gaana|song|গান|गाना|music).*(chalao|bajao|play|চালাও|বাজাও|चलाओ|बजाओ)|(chalao|bajao|play|চালাও|বাজাও|चलाओ|बजाओ).*(gaana|song|গান|गाना)|youtube.*(chalao|play|search|dhundo|বাজাও|খোঁজো)|(ইউটিউব|यूट्यूब).*(চালাও|বাজাও|খোঁজো|चलाओ|खोजो)/)) {
+      const q = clean(t); native("youtube_search", { query: q || "songs" }); return reply(say("done"));
+    }
+    if (has(/\bsearch\b|google|সার্চ|খোঁজো|dhundo|खोजो|गूगल/)) {
+      const q = clean(t); if (q) { native("web_search", { query: q }); return reply(say("done")); }
+    }
+    if (has(/navigate|rasta|directions?|রাস্তা|কীভাবে যাব|\broute\b|रास्ता|नेविगेट/)) {
+      const q = clean(t); if (q) { native("navigate", { place: q }); return reply(say("done")); }
+    }
+    if (has(/camera|ক্যামেরা|कैमरा|selfie|ছবি তোলো/)) { native("open_camera"); return reply(say("done")); }
+    if (has(/\bopen\b|launch|kholo|khol|খোলো|খোল|খুলে দাও|খুলো|ওপেন|चालू करो|खोलो|खोल/)) {
+      let name = ""; for (const [re, n] of APPS) { if (re.test(t)) { name = n; break; } }
+      if (!name) name = clean(t);
+      if (!name) return reply(say("fallback"));
+      const r = String(native("open_app", { name })); return reply(r.startsWith("opened") ? say("opening", name) : say("appNo", name));
+    }
+    return reply(say("fallback"));
+  } catch (e) { return reply(say("err", e.message)); }
+}
+
+/* ================= Saara animation: hair sway + lip sync + blink + hearts ================= */
+(function initGL() {
+  const cv = $("gl"); let gl = null;
+  try { gl = cv.getContext("webgl", { antialias: false }); } catch (e) {}
+  if (!gl) return;
+  const vs = "attribute vec2 p;varying vec2 v;void main(){v=vec2(p.x*.5+.5,.5-p.y*.5);gl_Position=vec4(p,0.,1.);}";
+  const fs = `precision mediump float;
+varying vec2 v; uniform sampler2D tex; uniform float t; uniform float amp;
+const vec2 SZ = vec2(941.0, 1672.0);
+float blob(vec2 px, vec2 c, vec2 r){ vec2 d=(px-c)/r; return clamp(1.0-dot(d,d),0.0,1.0); }
+void main(){
+  vec2 px = v*SZ; vec2 off = vec2(0.0);
+  float h = blob(px, vec2(345.0,490.0), vec2(80.0,185.0));
+  float tip = clamp((px.y-320.0)/300.0, 0.0, 1.0);
+  off.x += h*tip*(sin(t*1.7+px.y*0.018)*3.4 + sin(t*0.8+px.y*0.011)*2.2)*amp;
+  off.y += h*tip*sin(t*1.3+px.x*0.02)*0.9*amp;
+  float r = blob(px, vec2(572.0,325.0), vec2(50.0,78.0));
+  off.x += r*sin(t*2.1+px.y*0.03)*2.4*amp;
+  float b = blob(px, vec2(318.0,225.0), vec2(44.0,50.0));
+  off += b*vec2(sin(t*1.9)*1.8, cos(t*1.5)*1.1)*amp;
+  float e1 = blob(px, vec2(446.0,322.0), vec2(14.0,17.0));
+  float e2 = blob(px, vec2(536.0,312.0), vec2(14.0,17.0));
+  off.x += (e1*sin(t*2.4) + e2*sin(t*2.4+1.4))*2.2*amp;
+  gl_FragColor = texture2D(tex, (px+off)/SZ);
+}`;
+  const mk = (type, src) => { const o = gl.createShader(type); gl.shaderSource(o, src); gl.compileShader(o); return o; };
+  const pr = gl.createProgram();
+  gl.attachShader(pr, mk(gl.VERTEX_SHADER, vs)); gl.attachShader(pr, mk(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return;
+  gl.useProgram(pr);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const uT = gl.getUniformLocation(pr, "t"), uA = gl.getUniformLocation(pr, "amp");
+  const img = new Image();
+  img.onload = () => {
+    const tx = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tx);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, img);
+    cv.width = Math.min(941, Math.round($("stage").clientWidth * (devicePixelRatio || 1)));
+    cv.height = Math.round(cv.width * 1672 / 941);
+    gl.viewport(0, 0, cv.width, cv.height);
+    let last = 0, ampNow = 1;
+    const frame = ts => {
+      requestAnimationFrame(frame);
+      if (document.hidden || ts - last < 33) return;
+      last = ts;
+      ampNow += (((live || offMode) ? 1.7 : 1.0) - ampNow) * 0.08;
+      gl.uniform1f(uT, ts / 1000); gl.uniform1f(uA, ampNow);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    };
+    requestAnimationFrame(frame);
+    cv.style.visibility = "visible";
+  };
+  img.src = "bg.jpg";
+})();
+
+/* lip sync: AI ki awaaz ke volume se mooh khulta hai */
+function audioLevel() {
+  if (!analyser) return 0;
+  analyser.getByteTimeDomainData(anBuf);
+  let s = 0; for (let i = 0; i < anBuf.length; i++) { const x = (anBuf[i] - 128) / 128; s += x * x; }
+  return Math.min(1, Math.sqrt(s / anBuf.length) * 5);
+}
+function drawMouth(o) {
+  const h = o * 9, yb = 16 + h * 1.6;
+  $("mIn").setAttribute("d", "M8,16 Q30,15 52,16 Q44," + yb + " 30," + yb + " Q16," + yb + " 8,16 Z");
+  $("mTeeth").setAttribute("height", Math.min(3.2, h * 0.55).toFixed(2));
+  $("mLow").setAttribute("d", "M6,16.5 Q30," + (2 * yb - 8.5) + " 54,16.5 Q44," + (yb + 0.6) + " 30," + (yb + 0.6) + " Q16," + (yb + 0.6) + " 6,16.5 Z");
+}
+let lv = 0, mA = 0, lastLoud = 0;
+(function mouthLoop(ts) {
+  requestAnimationFrame(mouthLoop);
+  if (document.hidden) return;
+  let raw = audioLevel();
+  if (offSpeaking) raw = 0.25 + 0.6 * Math.abs(Math.sin(ts / 105)) * (0.65 + 0.35 * Math.sin(ts / 41));
+  lv = lv * 0.55 + raw * 0.45;
+  if (lv > 0.06) lastLoud = ts;
+  mA += (((ts - lastLoud < 450 && (analyser || offSpeaking)) ? 1 : 0) - mA) * 0.3;
+  const m = $("mouth");
+  if (mA < 0.01) { if (m.style.opacity !== "0") m.style.opacity = "0"; return; }
+  m.style.opacity = mA.toFixed(2);
+  drawMouth(Math.min(1, lv * 1.4));
+})(0);
+
+/* palak jhapakna */
+function blink() {
+  ["eyeL", "eyeR"].forEach(id => { const e = $(id); e.classList.remove("bl"); void e.offsetWidth; e.classList.add("bl"); });
+  setTimeout(blink, (live ? 2200 : 3000) + Math.random() * 3200);
+}
+setTimeout(blink, 1800);
+
+/* udte hue dil */
+for (let i = 0; i < 9; i++) {
+  const hh = document.createElement("div"); hh.className = "hrt"; hh.textContent = i % 3 ? "💗" : "✨";
+  hh.style.left = (30 + Math.random() * 880) / 941 * 100 + "%";
+  hh.style.setProperty("--dx", Math.round(Math.random() * 120 - 60));
+  hh.style.animationDuration = (9 + Math.random() * 8) + "s";
+  hh.style.animationDelay = (-Math.random() * 14) + "s";
+  $("stage").insertBefore(hh, $("bMenu"));
+}
+</script>
+<button id="tPin">🧰 Tools</button>
+<div id="tSheet"><div id="tBox"><h3><span>🧰 Saara Tools</span><button class="x" id="tX">✕</button></h3><div class="tabs" id="tTabs"></div><div class="g" id="tGrid"></div></div></div>
+
+<script>
+(function(){
+const CATS = [
+ ["🧠 AI & Intelligence Tools", "Chat Summarizer|Text Rewriter|Grammar Fixer|Translator|Idea Generator|Story Writer|Poem Maker|Email Writer|Caption Maker|Hashtag Finder|Quiz Maker|Flashcard AI|Note Summarizer|Mind Map AI|Meeting Notes|Q&A Bot|Code Explainer|Math Solver|Essay Outline|Resume Helper|Cover Letter|Product Description|Ad Copy|Slogan Maker|Name Generator|Sentiment Check|Fact Checker|Keyword Extractor|Tone Changer|Paraphrase Tool|Plagiarism Hint|Joke Generator|Riddle Maker|Recipe Ideas|Travel Planner|Diet Planner|Workout Planner|Budget Advisor|Habit Coach|Mood Journal AI|Dream Interpreter|Decision Helper|Pros & Cons|SWOT Analyzer|Persona Maker|Interview Prep|Debate Partner|Language Tutor|Pronunciation Check|Smart Reply|Chat Translator"],
+ ["🎙️ Voice Tools", "Voice Recorder|Speech to Text|Text to Speech|Voice Notes|Voice Changer|Pitch Shifter|Voice Speed|Noise Reducer|Echo Remover|Voice Memo|Voice Search|Voice Commands|Voice Timer|Voice Reminder|Dictation Mode|Audio Trimmer|Voice Translator|Accent Checker|Whisper Mode|Voice Lock|Speaker Count|Audio Joiner|Podcast Recorder|Voice Mail|Karaoke Mode|Vocal Remover|Voice Gender Toggle|Robot Voice|Echo Voice|Voice Greeting|Voice Alarm|Voice Diary|Voice Quiz|Phonetic Spelling|Read Aloud|Story Narrator|Voice Bookmark|Hands-free Notes|Voice Calculator|Voice Converter|Voice Stopwatch|Voice Dictionary|Voice Weather|Voice News|Voice Joke|Voice Clock|Voice Flashlight|Voice Volume|Voice Battery|Voice Message|Voice Typing|Voice Shortcuts|Voice Auth Demo|Voice Level Meter"],
+ ["🤖 Android Tools", "Battery Info|Storage Info|RAM Booster|App Manager|Cache Cleaner|Junk Remover|Device Info|Network Status|Wi-Fi Scanner|Bluetooth Manager|Hotspot Helper|Flashlight|Screen Brightness|Auto Rotate|Do Not Disturb|Screen Timeout|Sound Profile|Vibration Test|Sensor Test|Compass|Level Tool|Clipboard Manager|Notification Log|App Lock|Permission Viewer|Startup Apps|Storage Analyzer|Install Source|Backup Helper|Restore Helper|Screen Recorder|Screenshot Tool|Color Picker|Dark Mode Toggle|Font Size|Display Density|Clock Widget|Calendar Widget|Alarm Manager|Timer|Stopwatch|World Clock|Shortcut Maker|Widget Maker|Launcher Tips|Gesture Helper|Lock Screen Note|Quick Settings|Developer Options|Reboot Helper|Safe Mode Info|Phone Health"],
+ ["📁 File & Document Tools", "File Manager|PDF Reader|PDF Merger|PDF Splitter|PDF to Image|Image to PDF|Word Counter|Text Editor|Markdown Viewer|CSV Viewer|Excel Viewer|ZIP Maker|ZIP Extractor|RAR Opener|File Renamer|Bulk Renamer|Duplicate Finder|Large File Finder|Recycle Bin|File Hash|File Compare|Text Diff|Encoding Converter|Text Sorter|Line Remover|Case Converter|Document Scanner|OCR Text Extractor|Note Pad|Form Filler|Signature Maker|Invoice Maker|Receipt Keeper|Contract Viewer|Document Template|Checklist Maker|Table Maker|Doc Converter|File Share|QR File Transfer|Cloud Sync Helper|File Encryptor|Password Vault|Secure Notes|Wallpaper Manager|Ebook Reader|Subtitle Editor|Log Viewer|JSON Formatter|XML Formatter|Base64 File|File Type Detector"],
+ ["🖼️ Image Tools", "Image Compressor|Image Resizer|Image Cropper|Image Rotator|Image Filter|Photo Editor|Background Remover|Background Blur|Image Merger|Collage Maker|Watermark Adder|Text on Image|Sticker Maker|Meme Maker|Image to Text|QR Code Maker|QR Scanner|Barcode Scanner|Color Palette|Image Color Picker|Image Converter|HEIC to JPG|GIF Maker|GIF Splitter|Image Upscaler|Denoise Photo|Brightness Adjust|Contrast Booster|Sepia Filter|Black and White|Vignette Effect|Image Border|Passport Photo|Face Blur|Mosaic Effect|Sketch Effect|Cartoon Effect|Image Metadata|EXIF Remover|Screenshot Cropper|Mockup Maker|Logo Maker|Icon Maker|Favicon Generator|Image Flip|Image Pixelate|Image Grid Split|Wallpaper Resizer|Image Placeholder|Image Hash|Photo Timeline|Before After Slider|Image Compare"],
+ ["🎬 Video Tools", "Video Compressor|Video Trimmer|Video Merger|Video Splitter|Video Rotator|Video to MP3|Video to GIF|GIF to Video|Video Speed|Slow Motion|Reverse Video|Video Muter|Audio Replacer|Subtitle Adder|Subtitle Editor|Video Filter|Video Stabilizer|Video Resolution|Frame Extractor|Thumbnail Maker|Video Watermark|Video Crop|Video Collage|Picture in Picture|Video Background|Green Screen|Intro Maker|Outro Maker|Video Metadata|Video Player|Loop Video|Video Recorder|Screen Recorder Pro|Time Lapse|Video Freeze Frame|Video Reverse Audio|Video Format Converter|Video Bitrate|Video Duration|Video Info|Video Sharpen|Video Brightness|Video Contrast|Video Grayscale|Video Mirror|Video Zoom|Video Text Overlay|Video Sticker|Video Transition|Video Fade|Video Chroma Key|Video Preview|Video Batch Convert|Video Size Estimator|Video Thumbnail Grid"],
+ ["💻 Developer Tools", "JSON Viewer|JSON Validator|Regex Tester|Base64 Encoder|URL Encoder|Hash Generator|UUID Generator|Password Generator|Color Code Converter|HTML Preview|CSS Minifier|JS Minifier|Code Formatter|Diff Checker|Markdown Preview|SQL Formatter|Cron Generator|Timestamp Converter|Unix Time|IP Lookup|Subnet Calculator|Port Checker|HTTP Status Codes|API Tester|Mock JSON|Lorem Ipsum|Text Case|Number Base Converter|Binary Converter|Hex Viewer|Bit Calculator|Git Cheat Sheet|Shell Commands|Docker Cheat Sheet|Python Snippets|JS Snippets|Java Snippets|Kotlin Snippets|Dart Snippets|Gradle Tips|Android Logcat Viewer|Code Snippet Saver|Commit Message Helper|README Generator|License Picker|Favicon Checker|Meta Tag Checker|Lighthouse Hint|Minify Preview|Webhook Tester|Terminal Emulator"],
+ ["📚 Education Tools", "Flashcards|Quiz Creator|Math Calculator|Scientific Calculator|Graph Plotter|Unit Converter|Currency Converter|Periodic Table|Formula Sheet|Equation Solver|Geometry Helper|Fraction Calculator|Percentage Calculator|Algebra Helper|Physics Formulas|Chemistry Balancer|Biology Glossary|History Timeline|Geography Map Quiz|English Dictionary|Bangla Dictionary|Synonym Finder|Antonym Finder|Grammar Checker|Spelling Practice|Vocabulary Builder|Typing Tutor|Speed Reading|Pomodoro Study|Study Planner|Exam Countdown|Homework Tracker|Grade Calculator|CGPA Calculator|Essay Timer|Reading Log|Book Notes|Citation Maker|Bibliography Tool|Science Experiments|Coding Lessons|Music Theory|Chord Finder|Note Ear Trainer|Typing Speed Test|Memory Game|Logic Puzzles|Sudoku|Crossword Helper|Word Search|Kids Alphabet|Kids Numbers|Shapes Quiz|Color Learning"],
+ ["⚙️ Productivity Tools", "To-Do List|Daily Planner|Habit Tracker|Goal Tracker|Pomodoro Timer|Focus Mode|Time Tracker|Expense Tracker|Budget Planner|Bill Reminder|Subscription Tracker|Savings Goal|Invoice Tracker|Notes|Sticky Notes|Checklist|Shopping List|Meal Planner|Grocery Budget|Packing List|Calendar Quick Add|Meeting Scheduler|Countdown Timer|Event Countdown|Birthday Reminder|Medicine Reminder|Water Reminder|Sleep Tracker|Mood Tracker|Gratitude Journal|Journal|Brain Dump|Eisenhower Matrix|Kanban Board|Project Tracker|Task Priority|Recurring Tasks|Weekly Review|Quick Calculator|Currency Quick|Unit Quick|Address Book|Contact Groups|QR Contact|Business Card|Email Templates|Clipboard History|Text Expander|Snippet Manager|Quick Launch|Shortcut Board|Reading List|Bookmark Manager|Password Notes|Morning Routine|Evening Routine"],
+];
+const tabs=document.getElementById('tTabs'), grid=document.getElementById('tGrid');
+function show(i){
+  [...tabs.children].forEach((b,j)=>b.classList.toggle('on',j===i));
+  grid.innerHTML='';
+  CATS[i][1].split('|').forEach(n=>{const d=document.createElement('div');d.textContent=n;grid.appendChild(d);});
+}
+CATS.forEach((c,i)=>{const b=document.createElement('button');b.textContent=c[0];b.onclick=()=>show(i);tabs.appendChild(b);});
+show(0);
+document.getElementById('tPin').onclick=()=>document.getElementById('tSheet').classList.add('open');
+document.getElementById('tX').onclick=()=>document.getElementById('tSheet').classList.remove('open');
+document.getElementById('tSheet').onclick=e=>{if(e.target.id==='tSheet')e.target.classList.remove('open');};
+})();
+</script>
+
+<script>
+(function(){
+const TOOLS = {
+ "🧮 Calculator": `<input id="c1" placeholder="যেমন 12*5+3" style="width:100%;padding:10px;border-radius:10px;border:0"><div id="c2" style="margin-top:8px;font-size:20px"></div>`,
+ "⏱ Timer": `<input id="t1" type="number" value="60" style="width:100%;padding:10px;border-radius:10px;border:0"> <small>সেকেন্ড</small><div id="t2" style="font-size:28px;margin:10px 0"></div>`,
+ "⏲ Stopwatch": `<div id="s2" style="font-size:28px">0.0</div>`,
+ "🔤 Word Counter": `<textarea id="w1" rows="5" style="width:100%;border-radius:10px;padding:8px"></textarea><div id="w2"></div>`,
+ "🔠 Case Converter": `<textarea id="cc1" rows="4" style="width:100%;border-radius:10px;padding:8px"></textarea>`,
+ "🔐 Password Generator": `<div id="pw" style="word-break:break-all;font-size:18px"></div>`,
+ "📏 Unit Converter (km→m)": `<input id="u1" type="number" value="1" style="width:100%;padding:10px;border-radius:10px;border:0"><div id="u2" style="margin-top:8px;font-size:20px"></div>`,
+ "🎲 Random Number": `<div id="r2" style="font-size:36px">?</div>`,
+ "⚖️ BMI Calculator": `<input id="b1" placeholder="ওজন (kg)" style="width:100%;padding:10px;border-radius:10px;border:0;margin-bottom:6px"><input id="b2" placeholder="উচ্চতা (cm)" style="width:100%;padding:10px;border-radius:10px;border:0"><div id="b3" style="margin-top:8px"></div>`,
+ "🔄 Reverse Text": `<textarea id="rv1" rows="4" style="width:100%;border-radius:10px;padding:8px"></textarea><div id="rv2"></div>`
+};
+const RUN = {
+ "🧮 Calculator": (b)=>{const i=b.querySelector("#c1"),o=b.querySelector("#c2");i.oninput=()=>{try{o.textContent="= "+Function("return ("+i.value.replace(/[^0-9+\-*/().%\s]/g,"")+")")()}catch(e){o.textContent="ভুল হিসাব"}}},
+ "⏱ Timer": (b)=>{const i=b.querySelector("#t1"),o=b.querySelector("#t2");let id,left=0;const st=document.createElement("button");st.textContent="শুরু";st.className="btn";st.style.marginTop="8px";b.appendChild(st);st.onclick=()=>{clearInterval(id);left=+i.value||0;id=setInterval(()=>{o.textContent=left+"s";if(--left<0){clearInterval(id);o.textContent="শেষ!";}},1000)};},
+ "⏲ Stopwatch": (b)=>{const o=b.querySelector("#s2");let t0=0,id=null;const st=document.createElement("button");st.textContent="শুরু / বন্ধ";st.className="btn";st.style.marginTop="8px";b.appendChild(st);st.onclick=()=>{if(id){clearInterval(id);id=null}else{const s=Date.now()-t0*1000;id=setInterval(()=>{t0=(Date.now()-s)/1000;o.textContent=t0.toFixed(1)},100)}};},
+ "🔤 Word Counter": (b)=>{const i=b.querySelector("#w1"),o=b.querySelector("#w2");i.oninput=()=>{const t=i.value.trim();o.textContent="শব্দ: "+(t?t.split(/\s+/).length:0)+" | অক্ষর: "+i.value.length}},
+ "🔠 Case Converter": (b)=>{const i=b.querySelector("#cc1");const a=document.createElement("button");a.textContent="বড় হাতের";a.className="btn";const c=document.createElement("button");c.textContent="ছোট হাতের";c.className="btn";b.append(a,c);a.onclick=()=>i.value=i.value.toUpperCase();c.onclick=()=>i.value=i.value.toLowerCase();},
+ "🔐 Password Generator": (b)=>{const o=b.querySelector("#pw");const gen=()=>{const c="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";let r="";for(let k=0;k<14;k++)r+=c[Math.floor(Math.random()*c.length)];return r};o.textContent=gen();const bt=document.createElement("button");bt.textContent="নতুন";bt.className="btn";bt.style.marginTop="8px";b.appendChild(bt);bt.onclick=()=>o.textContent=gen();},
+ "📏 Unit Converter (km→m)": (b)=>{const i=b.querySelector("#u1"),o=b.querySelector("#u2");const f=()=>o.textContent=(i.value*1000)+" মিটার";i.oninput=f;f();},
+ "🎲 Random Number": (b)=>{const o=b.querySelector("#r2");const bt=document.createElement("button");bt.textContent="1 থেকে 100";bt.className="btn";b.appendChild(bt);bt.onclick=()=>o.textContent=1+Math.floor(Math.random()*100);},
+ "⚖️ BMI Calculator": (b)=>{const w=b.querySelector("#b1"),h=b.querySelector("#b2"),o=b.querySelector("#b3");const f=()=>{const m=(+h.value)/100;if(m>0&&+w.value>0){const v=(+w.value/(m*m)).toFixed(1);o.textContent="BMI: "+v}};w.oninput=f;h.oninput=f;},
+ "🔄 Reverse Text": (b)=>{const i=b.querySelector("#rv1"),o=b.querySelector("#rv2");i.oninput=()=>o.textContent=[...i.value].reverse().join("")}
+};
+const GAMES=[["🍭","Candy Crush","com.king.candycrushsaga"],["🧩","Ludo King","com.ludo.king"],["🏎️","Subway Surfers","com.kiloo.subwaysurf"],["🔫","PUBG Mobile","com.tencent.ig"],["🐦","Flappy Bird","com.dotgears.flappybird"],["🎯","8 Ball Pool","com.miniclip.8ballpool"],["🧱","Block Blast","com.hungry.blockblast"],["🐸","Temple Run 2","com.imangi.templerun2"]];
+const grid=document.getElementById("tGrid"), tabs=document.getElementById("tTabs"); window.__openTool=openTool;
+function openTool(name){
+  grid.innerHTML="";
+  const back=document.createElement("button");back.textContent="← ফিরে যান";back.className="btn ghost";back.style.gridColumn="1/-1";back.onclick=()=>{document.querySelector("#tTabs button.on")?.click()};grid.appendChild(back);
+  const box=document.createElement("div");box.style.gridColumn="1/-1";box.style.background="#2c1a33";box.style.borderRadius="12px";box.style.padding="12px";
+  box.innerHTML="<b>"+name+"</b><div style='margin-top:10px'>"+(TOOLS[name]||"<small>এই টুলের কাজ এখনো যুক্ত হয়নি।</small>")+"</div>";
+  grid.appendChild(box);
+  if(RUN[name])RUN[name](box);
+}
+function openGame(){
+  grid.innerHTML="";
+  GAMES.forEach(([ic,n,pkg])=>{const d=document.createElement("div");d.innerHTML=ic+" "+n+"<br><small>খেলা শুরু করুন</small>";d.onclick=()=>window.__gameClick(n,pkg);grid.appendChild(d)});
+}
+function show(list,title){
+  grid.innerHTML="";
+  list.forEach(n=>{const d=document.createElement("div");d.textContent=n;d.style.cursor="pointer";d.onclick=()=>openTool(n);grid.appendChild(d)});
+}
+const cats=[...tabs.querySelectorAll("button")];
+const names=[["🧠 AI & Intelligence Tools"],["🎙️ Voice Tools"],["🤖 Android Tools"],["📁 File & Document Tools"],["🖼️ Image Tools"],["🎬 Video Tools"],["💻 Developer Tools"],["📚 Education Tools"],["⚙️ Productivity Tools"]];
+const ALL=Object.keys(TOOLS);
+cats.forEach((b,i)=>{b.onclick=()=>{cats.forEach(x=>x.classList.remove("on"));b.classList.add("on");
+  if(i===0) show(ALL,""); else show(ALL.slice(0,0),"");
+  if(i===1) openGame();
+  if(i===0){} 
+};});
+// Game mode tab
+const gb=document.createElement("button");gb.textContent="🎮 গেম মোড";gb.onclick=()=>{cats.forEach(x=>x.classList.remove("on"));gb.classList.add("on");openGame()};tabs.appendChild(gb);
+if(cats[0]) cats[0].click();
+})();
+</script>
+
+<script>
+(function(){
+const TOOLCATS = [["🧠 AI & Intelligence Tools", "Chat Summarizer|Text Rewriter|Grammar Fixer|Translator|Idea Generator|Story Writer|Poem Maker|Email Writer|Caption Maker|Hashtag Finder|Quiz Maker|Flashcard AI|Note Summarizer|Mind Map AI|Meeting Notes|Q&A Bot|Code Explainer|Math Solver|Essay Outline|Resume Helper|Cover Letter|Product Description|Ad Copy|Slogan Maker|Name Generator|Sentiment Check|Fact Checker|Keyword Extractor|Tone Changer|Paraphrase Tool|Plagiarism Hint|Joke Generator|Riddle Maker|Recipe Ideas|Travel Planner|Diet Planner|Workout Planner|Budget Advisor|Habit Coach|Mood Journal AI|Dream Interpreter|Decision Helper|Pros & Cons|SWOT Analyzer|Persona Maker|Interview Prep|Debate Partner|Language Tutor|Pronunciation Check|Smart Reply|Chat Translator"], ["🎙️ Voice Tools", "Voice Recorder|Speech to Text|Text to Speech|Voice Notes|Voice Changer|Pitch Shifter|Voice Speed|Noise Reducer|Echo Remover|Voice Memo|Voice Search|Voice Commands|Voice Timer|Voice Reminder|Dictation Mode|Audio Trimmer|Voice Translator|Accent Checker|Whisper Mode|Voice Lock|Speaker Count|Audio Joiner|Podcast Recorder|Voice Mail|Karaoke Mode|Vocal Remover|Voice Gender Toggle|Robot Voice|Echo Voice|Voice Greeting|Voice Alarm|Voice Diary|Voice Quiz|Phonetic Spelling|Read Aloud|Story Narrator|Voice Bookmark|Hands-free Notes|Voice Calculator|Voice Converter|Voice Stopwatch|Voice Dictionary|Voice Weather|Voice News|Voice Joke|Voice Clock|Voice Flashlight|Voice Volume|Voice Battery|Voice Message|Voice Typing|Voice Shortcuts|Voice Auth Demo|Voice Level Meter"], ["🤖 Android Tools", "Battery Info|Storage Info|RAM Booster|App Manager|Cache Cleaner|Junk Remover|Device Info|Network Status|Wi-Fi Scanner|Bluetooth Manager|Hotspot Helper|Flashlight|Screen Brightness|Auto Rotate|Do Not Disturb|Screen Timeout|Sound Profile|Vibration Test|Sensor Test|Compass|Level Tool|Clipboard Manager|Notification Log|App Lock|Permission Viewer|Startup Apps|Storage Analyzer|Install Source|Backup Helper|Restore Helper|Screen Recorder|Screenshot Tool|Color Picker|Dark Mode Toggle|Font Size|Display Density|Clock Widget|Calendar Widget|Alarm Manager|Timer|Stopwatch|World Clock|Shortcut Maker|Widget Maker|Launcher Tips|Gesture Helper|Lock Screen Note|Quick Settings|Developer Options|Reboot Helper|Safe Mode Info|Phone Health"], ["📁 File & Document Tools", "File Manager|PDF Reader|PDF Merger|PDF Splitter|PDF to Image|Image to PDF|Word Counter|Text Editor|Markdown Viewer|CSV Viewer|Excel Viewer|ZIP Maker|ZIP Extractor|RAR Opener|File Renamer|Bulk Renamer|Duplicate Finder|Large File Finder|Recycle Bin|File Hash|File Compare|Text Diff|Encoding Converter|Text Sorter|Line Remover|Case Converter|Document Scanner|OCR Text Extractor|Note Pad|Form Filler|Signature Maker|Invoice Maker|Receipt Keeper|Contract Viewer|Document Template|Checklist Maker|Table Maker|Doc Converter|File Share|QR File Transfer|Cloud Sync Helper|File Encryptor|Password Vault|Secure Notes|Wallpaper Manager|Ebook Reader|Subtitle Editor|Log Viewer|JSON Formatter|XML Formatter|Base64 File|File Type Detector"], ["🖼️ Image Tools", "Image Compressor|Image Resizer|Image Cropper|Image Rotator|Image Filter|Photo Editor|Background Remover|Background Blur|Image Merger|Collage Maker|Watermark Adder|Text on Image|Sticker Maker|Meme Maker|Image to Text|QR Code Maker|QR Scanner|Barcode Scanner|Color Palette|Image Color Picker|Image Converter|HEIC to JPG|GIF Maker|GIF Splitter|Image Upscaler|Denoise Photo|Brightness Adjust|Contrast Booster|Sepia Filter|Black and White|Vignette Effect|Image Border|Passport Photo|Face Blur|Mosaic Effect|Sketch Effect|Cartoon Effect|Image Metadata|EXIF Remover|Screenshot Cropper|Mockup Maker|Logo Maker|Icon Maker|Favicon Generator|Image Flip|Image Pixelate|Image Grid Split|Wallpaper Resizer|Image Placeholder|Image Hash|Photo Timeline|Before After Slider|Image Compare"], ["🎬 Video Tools", "Video Compressor|Video Trimmer|Video Merger|Video Splitter|Video Rotator|Video to MP3|Video to GIF|GIF to Video|Video Speed|Slow Motion|Reverse Video|Video Muter|Audio Replacer|Subtitle Adder|Subtitle Editor|Video Filter|Video Stabilizer|Video Resolution|Frame Extractor|Thumbnail Maker|Video Watermark|Video Crop|Video Collage|Picture in Picture|Video Background|Green Screen|Intro Maker|Outro Maker|Video Metadata|Video Player|Loop Video|Video Recorder|Screen Recorder Pro|Time Lapse|Video Freeze Frame|Video Reverse Audio|Video Format Converter|Video Bitrate|Video Duration|Video Info|Video Sharpen|Video Brightness|Video Contrast|Video Grayscale|Video Mirror|Video Zoom|Video Text Overlay|Video Sticker|Video Transition|Video Fade|Video Chroma Key|Video Preview|Video Batch Convert|Video Size Estimator|Video Thumbnail Grid"], ["💻 Developer Tools", "JSON Viewer|JSON Validator|Regex Tester|Base64 Encoder|URL Encoder|Hash Generator|UUID Generator|Password Generator|Color Code Converter|HTML Preview|CSS Minifier|JS Minifier|Code Formatter|Diff Checker|Markdown Preview|SQL Formatter|Cron Generator|Timestamp Converter|Unix Time|IP Lookup|Subnet Calculator|Port Checker|HTTP Status Codes|API Tester|Mock JSON|Lorem Ipsum|Text Case|Number Base Converter|Binary Converter|Hex Viewer|Bit Calculator|Git Cheat Sheet|Shell Commands|Docker Cheat Sheet|Python Snippets|JS Snippets|Java Snippets|Kotlin Snippets|Dart Snippets|Gradle Tips|Android Logcat Viewer|Code Snippet Saver|Commit Message Helper|README Generator|License Picker|Favicon Checker|Meta Tag Checker|Lighthouse Hint|Minify Preview|Webhook Tester|Terminal Emulator"], ["📚 Education Tools", "Flashcards|Quiz Creator|Math Calculator|Scientific Calculator|Graph Plotter|Unit Converter|Currency Converter|Periodic Table|Formula Sheet|Equation Solver|Geometry Helper|Fraction Calculator|Percentage Calculator|Algebra Helper|Physics Formulas|Chemistry Balancer|Biology Glossary|History Timeline|Geography Map Quiz|English Dictionary|Bangla Dictionary|Synonym Finder|Antonym Finder|Grammar Checker|Spelling Practice|Vocabulary Builder|Typing Tutor|Speed Reading|Pomodoro Study|Study Planner|Exam Countdown|Homework Tracker|Grade Calculator|CGPA Calculator|Essay Timer|Reading Log|Book Notes|Citation Maker|Bibliography Tool|Science Experiments|Coding Lessons|Music Theory|Chord Finder|Note Ear Trainer|Typing Speed Test|Memory Game|Logic Puzzles|Sudoku|Crossword Helper|Word Search|Kids Alphabet|Kids Numbers|Shapes Quiz|Color Learning"], ["⚙️ Productivity Tools", "To-Do List|Daily Planner|Habit Tracker|Goal Tracker|Pomodoro Timer|Focus Mode|Time Tracker|Expense Tracker|Budget Planner|Bill Reminder|Subscription Tracker|Savings Goal|Invoice Tracker|Notes|Sticky Notes|Checklist|Shopping List|Meal Planner|Grocery Budget|Packing List|Calendar Quick Add|Meeting Scheduler|Countdown Timer|Event Countdown|Birthday Reminder|Medicine Reminder|Water Reminder|Sleep Tracker|Mood Tracker|Gratitude Journal|Journal|Brain Dump|Eisenhower Matrix|Kanban Board|Project Tracker|Task Priority|Recurring Tasks|Weekly Review|Quick Calculator|Currency Quick|Unit Quick|Address Book|Contact Groups|QR Contact|Business Card|Email Templates|Clipboard History|Text Expander|Snippet Manager|Quick Launch|Shortcut Board|Reading List|Bookmark Manager|Password Notes|Morning Routine|Evening Routine"]];
+const WORKING = {
+ "Calculator":1,"Timer":1,"Stopwatch":1,"Word Counter":1,"Case Converter":1,"Password Generator":1,"Unit Converter (km→m)":1,"Random Number":1,"BMI Calculator":1,"Reverse Text":1
+};
+const grid=document.getElementById("tGrid"), tabs=document.getElementById("tTabs");
+function openInfo(n){ window.__aiTool(n); return;
+  grid.innerHTML="";
+  const back=document.createElement("button");back.textContent="← সব টুল";back.className="btn ghost";back.style.gridColumn="1/-1";
+  back.onclick=()=>{const on=tabs.querySelector("button.on");if(on)on.click();};grid.appendChild(back);
+  const box=document.createElement("div");box.style.gridColumn="1/-1";box.style.background="#2c1a33";box.style.borderRadius="12px";box.style.padding="12px";
+  box.innerHTML="<b>"+n+"</b><div style='margin-top:8px;font-size:13px;color:#d6b8ff'>এই টুলের কাজ এখনো যুক্ত হয়নি।</div>";
+  grid.appendChild(box);
+}
+function renderCat(i){
+  const [title,list]=TOOLCATS[i];
+  const names=list.split("|");
+  grid.innerHTML="";
+  names.forEach(n=>{
+    const d=document.createElement("div");
+    d.style.cursor="pointer";
+    d.innerHTML=n+(WORKING[n]?"<small>চালু আছে</small>":"<small>শীঘ্রই</small>");
+    d.onclick=()=>{ if(WORKING[n]){ openTool(n); } else { openInfo(n); } };
+    grid.appendChild(d);
+  });
+}
+function openTool(n){
+  // reuse the working-tool runner from the earlier script if present
+  if(typeof window.__openTool==="function") window.__openTool(n);
+}
+const cats=[...tabs.querySelectorAll("button")];
+cats.forEach((b,i)=>{ if(i<TOOLCATS.length){ b.textContent=TOOLCATS[i][0]; b.onclick=()=>{cats.forEach(x=>x.classList.remove("on"));b.classList.add("on");renderCat(i);}; } });
+if(cats[0]) cats[0].click();
+})();
+</script>
+
+<script>
+window.__aiTool=function(n){
+  document.getElementById("tSheet").classList.remove("open");
+  closeP("pTools");
+  openP("pChat");
+  sendText(n+" টুলটি চালাও এবং ফলাফল দাও");
+};
+window.__gameClick=function(n,pkg){
+  const old=document.getElementById("gConf"); if(old) old.remove();
+  const box=document.createElement("div");
+  box.id="gConf";
+  box.style.cssText="position:fixed;inset:0;background:#000b;z-index:300;display:flex;align-items:center;justify-content:center;padding:20px";
+  const isCandy = /candy/i.test(n);
+  box.innerHTML='<div style="background:#1b1020;color:#fff;border-radius:16px;padding:18px;max-width:340px;width:100%;font-family:sans-serif"><div style="font-size:17px;font-weight:700;margin-bottom:10px">'+n+'</div><div style="font-size:14px;margin-bottom:16px">তুমি কি গেমে ঢুকেছো?</div><div style="display:flex;gap:10px"><button id="gYes" style="flex:1;padding:10px;border:0;border-radius:10px;background:#ff3d7f;color:#fff;font-weight:700">হ্যাঁ</button><button id="gNo" style="flex:1;padding:10px;border:0;border-radius:10px;background:#2c1a33;color:#fff">না</button></div></div>';
+  document.body.appendChild(box);
+  box.querySelector("#gNo").onclick=()=>box.remove();
+  box.querySelector("#gYes").onclick=()=>{
+    box.remove();
+    if(typeof native==="function") native("open_app",{name:n});
+    if(isCandy){
+      document.getElementById("tSheet").classList.remove("open");
+      closeP("pTools");
+      setTimeout(()=>{
+        const gn=document.getElementById("gname"); if(gn) gn.value="Candy Crush";
+        const st=document.getElementById("gStart"); if(st) st.click();
+      },3000);
+    }
+  };
+};
+</script>
+
+<script>
+window.__runAiTool=function(q,input){
+  const x=String(input||"");
+  const W={
+    "Calculator":()=>{try{return "ফলাফল: "+Function("return ("+x.replace(/[^0-9+\-*/().%\s]/g,"")+")")()}catch(e){return "হিসাব বুঝতে পারিনি"}},
+    "Timer":()=>"টাইমার: এটা ফোনের Timer থেকে চালু করুন (সেকেন্ড: "+(parseInt(x)||60)+")",
+    "Stopwatch":()=>"স্টপওয়াচ: অ্যাপের টুল প্যানেল থেকে চালু করুন।",
+    "Word Counter":()=>{const t=x.trim();return "শব্দ: "+(t?t.split(/\s+/).length:0)+", অক্ষর: "+x.length},
+    "Case Converter":()=>x.toUpperCase(),
+    "Password Generator":()=>{const c="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%";let r="";for(let k=0;k<14;k++)r+=c[Math.floor(Math.random()*c.length)];return "পাসওয়ার্ড: "+r},
+    "Unit Converter (km→m)":()=>{const n=parseFloat(x)||1;return n+" কিমি = "+(n*1000)+" মিটার"},
+    "Random Number":()=>"সংখ্যা: "+(1+Math.floor(Math.random()*100)),
+    "BMI Calculator":()=>{const p=x.split(/\s+/).map(Number);const w=p[0],h=p[1]/100;return (w>0&&h>0)?"BMI: "+(w/(h*h)).toFixed(1):"ওজন (kg) ও উচ্চতা (cm) দিন, যেমন: 70 170"},
+    "Reverse Text":()=>[...x].reverse().join("")
+  };
+  const key=Object.keys(W).find(k=>k.toLowerCase()===q.toLowerCase()||q.toLowerCase().includes(k.toLowerCase().split(" ")[0]));
+  if(key) return W[key]();
+  return q+" টুলটির কাজ এখনো যুক্ত হয়নি। অন্য একটা টুল বলুন।";
+};
+</script>
+</body>
+</html>
