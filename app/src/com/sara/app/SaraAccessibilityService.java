@@ -4,11 +4,11 @@ import android.accessibilityservice.AccessibilityService;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 
-// Screen er text pora. Sudhu user Settings theke chalu korle kaj kore.
+// Screen text is read only when the user asks (snapshot), not on every screen change.
+// This keeps the phone fast.
 public class SaraAccessibilityService extends AccessibilityService {
 
     static volatile SaraAccessibilityService instance;
-    static volatile String lastText = "";
 
     @Override
     protected void onServiceConnected() {
@@ -18,16 +18,21 @@ public class SaraAccessibilityService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        AccessibilityNodeInfo root = getRootInActiveWindow();
-        if (root == null) return;
-        StringBuilder sb = new StringBuilder();
-        collect(root, sb, 0);
-        String t = sb.toString();
-        if (t.length() > 4000) t = t.substring(0, 4000);
-        lastText = t;
+        // intentionally empty
     }
 
-    private void collect(AccessibilityNodeInfo node, StringBuilder sb, int depth) {
+    // Returns null if service is off, "" if no text, else the text (max 4000 chars).
+    static String snapshot() {
+        SaraAccessibilityService s = instance;
+        if (s == null) return null;
+        AccessibilityNodeInfo root = s.getRootInActiveWindow();
+        if (root == null) return "";
+        StringBuilder sb = new StringBuilder();
+        collect(root, sb, 0);
+        return sb.length() > 4000 ? sb.substring(0, 4000) : sb.toString();
+    }
+
+    private static void collect(AccessibilityNodeInfo node, StringBuilder sb, int depth) {
         if (node == null || depth > 40 || sb.length() > 4000) return;
         CharSequence txt = node.getText();
         CharSequence cd = node.getContentDescription();

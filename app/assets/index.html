@@ -107,6 +107,11 @@
   <button class="pbtn" id="btnNotif">শেষ নোটিফিকেশনগুলো দেখো</button>
   <div class="out" id="notifOut"></div>
 
+  <h4>অ্যাপ খোলো</h4>
+  <input id="appSearch" placeholder="অ্যাপের নাম লিখুন (খালি রাখলে সব)">
+  <button class="pbtn" id="btnLoadApps">অ্যাপের তালিকা দেখো</button>
+  <div id="appList"></div>
+
   <h4>ফাইল ম্যানেজার</h4>
   <input id="fpath" placeholder="ফোল্ডার পথ (খালি রাখলে মূল স্টোরেজ)">
   <button class="pbtn" id="btnList">ফোল্ডার দেখো</button>
@@ -163,12 +168,65 @@
   });
 
   // ---- notifications ----
-  document.getElementById("btnNotif").addEventListener("click", function () {
-    var raw = call("getNotifications") || "[]";
-    var arr = []; try { arr = JSON.parse(raw); } catch (e) {}
-    document.getElementById("notifOut").textContent =
-      arr.length ? arr.join("\n\n") : "কোনো নোটিফিকেশন পাওয়া যায়নি।";
-  });
+  function renderNotifs() {
+    var box = document.getElementById("notifOut");
+    var arr = [];
+    try { arr = JSON.parse(call("getNotifications") || "[]"); } catch (e) {}
+    box.innerHTML = "";
+    if (!arr.length) { box.textContent = "কোনো নোটিফিকেশন নেই।"; return; }
+    arr.forEach(function (n) {
+      var row = document.createElement("div");
+      row.className = "file";
+      var txt = document.createElement("div");
+      txt.className = "name";
+      txt.style.whiteSpace = "pre-wrap";
+      txt.textContent = n.text;
+      var b = document.createElement("button");
+      b.className = "del";
+      b.textContent = "মোছো";
+      b.addEventListener("click", function () {
+        var r = call("dismissNotification", n.key);
+        if (r === "OK") renderNotifs(); else say(String(r).replace("ERR:", ""));
+      });
+      row.appendChild(txt); row.appendChild(b);
+      box.appendChild(row);
+    });
+  }
+  document.getElementById("btnNotif").addEventListener("click", renderNotifs);
+
+  // ---- apps ----
+  var appsCache = null;
+  function getApps() {
+    if (!appsCache) {
+      try { appsCache = JSON.parse(call("listApps") || "[]"); } catch (e) { appsCache = []; }
+    }
+    return appsCache;
+  }
+  function renderApps() {
+    var q = document.getElementById("appSearch").value.trim().toLowerCase();
+    var box = document.getElementById("appList");
+    box.innerHTML = "";
+    getApps().filter(function (a) {
+      return !q || a.name.toLowerCase().indexOf(q) > -1 || a.pkg.toLowerCase().indexOf(q) > -1;
+    }).forEach(function (a) {
+      var row = document.createElement("div");
+      row.className = "file";
+      var nm = document.createElement("div");
+      nm.className = "name";
+      nm.textContent = a.name;
+      var b = document.createElement("button");
+      b.className = "del";
+      b.textContent = "খোলো";
+      b.addEventListener("click", function () {
+        var r = call("openApp", a.pkg);
+        if (r !== "OK") say(String(r).replace("ERR:", ""));
+      });
+      row.appendChild(nm); row.appendChild(b);
+      box.appendChild(row);
+    });
+  }
+  document.getElementById("btnLoadApps").addEventListener("click", renderApps);
+  document.getElementById("appSearch").addEventListener("input", renderApps);
 
   // ---- file manager ----
   function currentDir() {

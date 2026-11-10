@@ -6,23 +6,26 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-// Notification pora. Sudhu user Notification Access dile kaj kore. Data shudhu memory-te thake.
+// Notifications are kept only in memory (last 30).
 public class SaraNotificationService extends NotificationListenerService {
 
     static volatile boolean connected = false;
-    static final List<String> recent = Collections.synchronizedList(new ArrayList<String>());
+    static volatile SaraNotificationService instance;
+    static final List<String> keys = new ArrayList<>();
+    static final List<String> texts = new ArrayList<>();
 
     @Override
     public void onListenerConnected() {
         connected = true;
+        instance = this;
     }
 
     @Override
     public void onListenerDisconnected() {
         connected = false;
+        instance = null;
     }
 
     @Override
@@ -33,12 +36,26 @@ public class SaraNotificationService extends NotificationListenerService {
             CharSequence text = ex.getCharSequence(Notification.EXTRA_TEXT);
             String line = sbn.getPackageName() + " | " + (title == null ? "" : title)
                     + " | " + (text == null ? "" : text);
-            synchronized (recent) {
-                recent.add(0, line);
-                while (recent.size() > 30) recent.remove(recent.size() - 1);
+            synchronized (keys) {
+                keys.add(0, sbn.getKey());
+                texts.add(0, line);
+                while (keys.size() > 30) {
+                    keys.remove(keys.size() - 1);
+                    texts.remove(texts.size() - 1);
+                }
             }
         } catch (Exception e) {
             // ignore
+        }
+    }
+
+    static void forget(String key) {
+        synchronized (keys) {
+            int i = keys.indexOf(key);
+            if (i >= 0) {
+                keys.remove(i);
+                texts.remove(i);
+            }
         }
     }
 }
