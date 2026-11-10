@@ -27,13 +27,12 @@ jobs:
           SDK=/usr/local/lib/android/sdk
           JAR=$SDK/platforms/android-34/android.jar
           BT=$SDK/build-tools/34.0.0
-          APP=$GITHUB_WORKSPACE/app
           OUT=$GITHUB_WORKSPACE/out
-          mkdir -p $OUT/classes
+          rm -rf $OUT && mkdir -p $OUT/classes
 
-          cd $APP
-          $BT/aapt package -f -M AndroidManifest.xml -A assets -I $JAR -F $OUT/base.apk
-          javac --release 8 -cp $JAR -d $OUT/classes src/com/sara/app/MainActivity.java
+          cd $GITHUB_WORKSPACE/app
+          $BT/aapt package -f -M AndroidManifest.xml -S res -A assets -I $JAR -F $OUT/base.apk
+          javac --release 8 -cp $JAR -d $OUT/classes $(find src -name '*.java')
           $BT/d8 --lib $JAR --output $OUT $(find $OUT/classes -name '*.class')
 
           cd $OUT

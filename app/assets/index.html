@@ -5,259 +5,244 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Sara</title>
 <style>
-  :root {
-    --pink: #ff2fa6;
-    --pink-soft: #ff7fd0;
-    --glow: rgba(255, 47, 166, 0.55);
-    --bg: #05000a;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body {
-    height: 100%; background: var(--bg); color: #fff; overflow: hidden;
-    font-family: "Segoe UI", Roboto, "Noto Sans Bengali", sans-serif;
-  }
+  :root { --pink:#ff2fa6; --pink-soft:#ff8ad6; --glow:rgba(255,47,166,.6); }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; background:#000; overflow:hidden;
+    font-family:"Segoe UI", Roboto, "Noto Sans Bengali", sans-serif; color:#fff; }
 
-  .screen {
-    position: relative; width: 100%; max-width: 430px; height: 100%;
-    margin: 0 auto; overflow: hidden;
-    background:
-      radial-gradient(circle at 50% 22%, rgba(255,47,166,.20), transparent 40%),
-      radial-gradient(circle at 50% 70%, rgba(255,47,166,.10), transparent 45%),
-      var(--bg);
-    display: flex; flex-direction: column;
-    padding: env(safe-area-inset-top, 0px) 0 env(safe-area-inset-bottom, 12px);
+  .wrap {
+    position:relative; height:100vh; height:100dvh; aspect-ratio:941 / 1672;
+    max-width:100vw; margin:0 auto; overflow:hidden; background:#050008;
   }
+  .wrap > img {
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+    display:block; pointer-events:none; user-select:none;
+  }
+  /* phone status bar and home bar from the reference image are covered */
+  .cover { position:absolute; left:0; right:0; background:#050008; z-index:2; pointer-events:none; }
+  .cover.top { top:0; height:5.2%; }
+  .cover.bottom { bottom:0; height:2.4%; }
 
-  /* decoration */
-  .deco { position: absolute; pointer-events: none; }
-  .star { width: 22px; height: 22px; color: var(--pink-soft); filter: drop-shadow(0 0 6px var(--pink)); }
-  .bokeh {
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(255,47,166,.6), rgba(255,47,166,0) 70%);
+  .hit {
+    position:absolute; z-index:3; background:transparent; border:0; padding:0; cursor:pointer;
   }
+  .hit.round { border-radius:50%; }
+  .hit.rect { border-radius:6%; }
+  .hit:active { background:rgba(255,47,166,.14); }
+  .hit:focus-visible { outline:2px solid #fff; outline-offset:2px; }
 
-  /* header */
-  .header { position: relative; height: 150px; flex-shrink: 0; }
-  .btn-menu {
-    position: absolute; left: 18px; top: 18px;
-    width: 58px; height: 58px; border-radius: 50%;
-    background: transparent; border: 2px solid var(--pink); color: #fff;
-    box-shadow: 0 0 14px var(--glow), inset 0 0 10px rgba(255,47,166,.25);
-    display: grid; place-items: center; cursor: pointer;
+  /* feature panel (opens from menu button) */
+  .panel {
+    position:fixed; top:0; left:0; bottom:0; width:min(88vw, 380px);
+    background:rgba(8,0,10,.97); border-right:2px solid var(--pink);
+    box-shadow:0 0 30px var(--glow); z-index:20; overflow-y:auto; padding:18px 16px 40px;
+    transform:translateX(-102%); transition:transform .25s ease;
   }
-  .logo {
-    position: absolute; left: 0; right: 0; top: 26px; text-align: center;
-    font-size: 40px; font-weight: 800; letter-spacing: 8px; color: #ffd9f0;
-    text-shadow: 0 0 6px #ff4fb8, 0 0 18px var(--pink), 0 0 36px var(--pink);
+  .panel.open { transform:translateX(0); }
+  .panel-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+  .panel-head h2 { font-size:20px; color:var(--pink-soft); letter-spacing:2px; }
+  .x { width:40px; height:40px; border-radius:50%; background:transparent; color:#fff;
+    border:2px solid var(--pink); font-size:18px; cursor:pointer; }
+  .status { font-size:13px; line-height:1.6; color:#ffd6f0; background:rgba(255,47,166,.08);
+    border:1px solid rgba(255,47,166,.4); border-radius:12px; padding:10px; margin-bottom:12px; }
+  .pbtn { display:block; width:100%; margin:8px 0; padding:12px; border-radius:14px; cursor:pointer;
+    background:rgba(20,0,14,.8); color:#fff; border:2px solid var(--pink-soft);
+    box-shadow:0 0 12px var(--glow); font-size:15px; }
+  .pbtn:active { background:rgba(255,47,166,.2); }
+  h4 { margin:18px 0 8px; font-size:15px; color:var(--pink-soft); }
+  input, textarea {
+    width:100%; padding:10px; margin:6px 0; border-radius:10px; background:#12000c; color:#fff;
+    border:1px solid rgba(255,47,166,.6); font-size:14px; font-family:inherit;
   }
-  .logo-line {
-    position: absolute; left: 14%; right: 14%; top: 100px; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--pink), transparent);
-    box-shadow: 0 0 10px var(--pink);
-  }
-
-  /* orb area */
-  .orb-area { position: relative; flex: 1; min-height: 0; }
-  .mic-wrap {
-    position: absolute; left: 50%; top: 42%; transform: translate(-50%, -50%);
-    width: 300px; height: 300px; display: grid; place-items: center;
-  }
-  .ring { position: absolute; border-radius: 50%; border: 1.5px solid rgba(255,47,166,.3); }
-  .r1 { width: 250px; height: 250px; }
-  .r2 { width: 300px; height: 300px; border-color: rgba(255,47,166,.2); }
-  .r3 { width: 360px; height: 360px; border-color: rgba(255,47,166,.1); }
-
-  .orb {
-    border-radius: 50%; border: none; cursor: pointer; color: #fff;
-    background: radial-gradient(circle at 35% 30%, #ffd1ec 0%, #ff4fb8 28%, #e0108a 70%, #9a0660 100%);
-    box-shadow: 0 0 30px var(--pink), 0 0 70px var(--glow), inset -10px -14px 24px rgba(90,0,50,.45);
-    display: grid; place-items: center;
-    transition: transform .2s ease;
-  }
-  .orb:active { transform: scale(.97); }
-  .orb.big { width: 210px; height: 210px; }
-  .orb svg { width: 74px; height: 74px; filter: drop-shadow(0 0 6px rgba(255,255,255,.6)); }
-  .orb.on { box-shadow: 0 0 40px var(--pink), 0 0 90px var(--glow), inset -10px -14px 24px rgba(90,0,50,.45); }
-
-  .planet-wrap {
-    position: absolute; left: 50%; top: 80%; transform: translate(-50%, -50%);
-    width: 200px; height: 200px; display: grid; place-items: center; pointer-events: none;
-  }
-  .planet-ring {
-    position: absolute; width: 230px; height: 90px; border-radius: 50%;
-    border: 2px solid rgba(255,47,166,.5); transform: rotate(-18deg);
-    box-shadow: 0 0 12px rgba(255,47,166,.4);
-  }
-  .planet {
-    width: 128px; height: 128px; border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #ffd1ec 0%, #ff4fb8 30%, #d0107f 80%);
-    box-shadow: 0 0 26px var(--pink), inset -8px -10px 18px rgba(90,0,50,.45);
-    display: grid; place-items: center;
-    font-size: 40px; font-weight: 700; color: #1a0010;
-  }
-
-  /* info cards */
-  .cards {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
-    padding: 0 18px; margin-bottom: 22px; flex-shrink: 0;
-  }
-  .card {
-    background: rgba(20,0,12,.55); border: 2px solid var(--pink-soft); border-radius: 22px;
-    box-shadow: 0 0 14px var(--glow), inset 0 0 12px rgba(255,47,166,.15);
-    padding: 16px 8px 14px; display: flex; flex-direction: column; align-items: center; gap: 6px;
-    color: #fff;
-  }
-  .card svg { width: 40px; height: 40px; }
-  .card .label { font-size: 15px; }
-  .card .value { font-size: 22px; font-weight: 700; }
-
-  /* bottom controls */
-  .controls {
-    display: grid; grid-template-columns: 1fr 1.25fr 1fr; align-items: center; justify-items: center;
-    padding: 0 26px 26px; flex-shrink: 0;
-  }
-  .ctrl {
-    width: 86px; height: 86px; border-radius: 50%; cursor: pointer; color: #fff;
-    background: rgba(10,0,6,.8); border: 2.5px solid var(--pink-soft); box-shadow: 0 0 14px var(--glow);
-    display: grid; place-items: center;
-  }
-  .ctrl svg { width: 34px; height: 34px; }
-  .ctrl.main {
-    width: 124px; height: 124px; border: 3px solid var(--pink);
-    box-shadow: 0 0 22px var(--pink), 0 0 50px var(--glow), inset 0 0 20px rgba(255,47,166,.3);
-  }
-  .ctrl.main svg { width: 46px; height: 46px; }
-  .ctrl.main.on { box-shadow: 0 0 40px var(--pink), 0 0 90px var(--glow), inset 0 0 26px rgba(255,47,166,.5); }
-
-  .home-indicator {
-    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
-    width: 150px; height: 5px; border-radius: 3px; background: #fff;
-  }
-
-  button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  textarea { min-height:60px; resize:vertical; }
+  .out { white-space:pre-wrap; word-break:break-word; font-size:13px; line-height:1.5;
+    background:#0c0008; border:1px solid rgba(255,47,166,.3); border-radius:10px;
+    padding:10px; margin:8px 0; max-height:260px; overflow-y:auto; font-family:inherit; }
+  .file { display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:8px 10px; margin:6px 0; border-radius:10px; background:rgba(255,47,166,.07);
+    border:1px solid rgba(255,47,166,.3); font-size:14px; }
+  .file small { color:#ffb3e3; }
+  .file .name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .del { padding:6px 10px; border-radius:10px; background:transparent; color:#ff8ab0;
+    border:1px solid #ff4fb8; cursor:pointer; }
+  .msg { font-size:13px; color:#ffd6f0; min-height:18px; margin-top:8px; }
 </style>
 </head>
 <body>
-<div class="screen">
 
-  <!-- decoration -->
-  <svg class="deco star" style="left:7%; top:19%" viewBox="0 0 24 24"><path fill="currentColor" d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z"/></svg>
-  <svg class="deco star" style="left:50%; top:33%; width:16px; height:16px" viewBox="0 0 24 24"><path fill="currentColor" d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z"/></svg>
-  <svg class="deco star" style="left:60%; top:60%; width:18px; height:18px" viewBox="0 0 24 24"><path fill="currentColor" d="M12 0 L14 10 L24 12 L14 14 L12 24 L10 14 L0 12 L10 10 Z"/></svg>
-  <div class="deco bokeh" style="left:-4%; top:4%; width:120px; height:120px; opacity:.4"></div>
-  <div class="deco bokeh" style="right:-6%; top:12%; width:150px; height:150px; opacity:.35"></div>
-  <div class="deco bokeh" style="left:-6%; top:42%; width:110px; height:110px; opacity:.35"></div>
-  <div class="deco bokeh" style="right:4%; top:52%; width:130px; height:130px; opacity:.35"></div>
-  <div class="deco bokeh" style="left:-2%; bottom:14%; width:140px; height:140px; opacity:.3"></div>
-  <div class="deco bokeh" style="right:-2%; bottom:18%; width:110px; height:110px; opacity:.3"></div>
+<div class="wrap">
+  <img src="bg.jpg" alt="Sara">
+  <div class="cover top"></div>
+  <div class="cover bottom"></div>
 
-  <!-- header -->
-  <header class="header">
-    <button class="btn-menu" aria-label="Menu">
-      <svg width="26" height="20" viewBox="0 0 26 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
-        <line x1="2" y1="3" x2="24" y2="3"/><line x1="2" y1="10" x2="24" y2="10"/><line x1="2" y1="17" x2="24" y2="17"/>
-      </svg>
-    </button>
-    <div class="logo">SARA</div>
-    <div class="logo-line"></div>
-  </header>
-
-  <!-- orb + planet -->
-  <section class="orb-area">
-    <div class="mic-wrap">
-      <div class="ring r3"></div>
-      <div class="ring r2"></div>
-      <div class="ring r1"></div>
-      <button class="orb big mic-live" id="orbMic" aria-label="Sara voice">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
-        </svg>
-      </button>
-    </div>
-
-    <div class="planet-wrap">
-      <div class="planet-ring"></div>
-      <div class="planet">S</div>
-    </div>
-  </section>
-
-  <!-- info cards -->
-  <section class="cards">
-    <div class="card">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">
-        <path d="M7 18h10a4 4 0 0 0 0-8 5 5 0 0 0-9.6-1.5A4.5 4.5 0 0 0 7 18z"/>
-      </svg>
-      <span class="label">Temperature</span>
-      <span class="value">22°C</span>
-    </div>
-    <div class="card">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-        <path d="M3 8h12a3 3 0 1 0-3-3"/><path d="M3 12h16a3 3 0 1 1-3 3"/><path d="M3 16h8"/>
-      </svg>
-      <span class="label">Haze</span>
-      <span class="value">High</span>
-    </div>
-    <div class="card">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round">
-        <path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>
-      </svg>
-      <span class="label">Humidity</span>
-      <span class="value">18:25</span>
-    </div>
-  </section>
-
-  <!-- bottom controls -->
-  <nav class="controls">
-    <button class="ctrl" aria-label="Apps">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
-        <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
-      </svg>
-    </button>
-    <button class="ctrl main mic-live" id="btnMic" aria-label="Microphone">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/>
-      </svg>
-    </button>
-    <button class="ctrl" aria-label="Chat">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">
-        <path d="M4 5h16v11H9l-5 4z"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="12" x2="13" y2="12"/>
-      </svg>
-    </button>
-  </nav>
-
-  <div class="home-indicator"></div>
+  <button class="hit round" id="menuBtn" aria-label="Menu" style="left:3.61%;top:5.38%;width:12.75%;height:7.18%"></button>
+  <button class="hit round mic-live" id="orbMic" aria-label="Voice orb" style="left:38.58%;top:17.94%;width:22.95%;height:12.92%"></button>
+  <button class="hit round" id="planetBtn" aria-label="Sara" style="left:40.60%;top:40.79%;width:18.70%;height:10.53%"></button>
+  <button class="hit rect" id="cardTemp" aria-label="Temperature" style="left:4.78%;top:68.36%;width:28.91%;height:12.68%"></button>
+  <button class="hit rect" id="cardHaze" aria-label="Haze" style="left:36.45%;top:68.36%;width:27.10%;height:12.68%"></button>
+  <button class="hit rect" id="cardHum" aria-label="Humidity" style="left:66.42%;top:68.36%;width:28.91%;height:12.68%"></button>
+  <button class="hit round" id="btnApps" aria-label="Apps" style="left:14.03%;top:84.27%;width:17.85%;height:10.05%"></button>
+  <button class="hit round mic-live" id="btnMic" aria-label="Microphone" style="left:37.51%;top:82.24%;width:25.08%;height:14.11%"></button>
+  <button class="hit round" id="btnChat" aria-label="Chat" style="left:68.12%;top:84.27%;width:17.85%;height:10.05%"></button>
 </div>
+
+<!-- feature panel -->
+<aside class="panel" id="panel" aria-hidden="true">
+  <div class="panel-head">
+    <h2>SARA মেনু</h2>
+    <button class="x" id="closePanel" aria-label="Close">✕</button>
+  </div>
+
+  <div class="status" id="status">অবস্থা লোড হচ্ছে...</div>
+
+  <button class="pbtn" id="btnA11y">অ্যাক্সেসিবিলিটি সেটিং খুলুন</button>
+  <button class="pbtn" id="btnNotifAccess">নোটিফিকেশন অ্যাক্সেস খুলুন</button>
+  <button class="pbtn" id="btnAllFiles">ফাইল অ্যাক্সেস খুলুন (All files)</button>
+
+  <h4>স্ক্রিন পড়া</h4>
+  <button class="pbtn" id="btnReadScreen">এখন স্ক্রিনে যা আছে পড়ো</button>
+  <div class="out" id="screenOut"></div>
+
+  <h4>নোটিফিকেশন</h4>
+  <button class="pbtn" id="btnNotif">শেষ নোটিফিকেশনগুলো দেখো</button>
+  <div class="out" id="notifOut"></div>
+
+  <h4>ফাইল ম্যানেজার</h4>
+  <input id="fpath" placeholder="ফোল্ডার পথ (খালি রাখলে মূল স্টোরেজ)">
+  <button class="pbtn" id="btnList">ফোল্ডার দেখো</button>
+  <div id="flist"></div>
+
+  <h4>নতুন ফাইল</h4>
+  <input id="fname" placeholder="ফাইলের নাম, যেমন note.txt">
+  <textarea id="fcontent" placeholder="ফাইলের লেখা (ঐচ্ছিক)"></textarea>
+  <button class="pbtn" id="btnNew">ফাইল বানাও (ফোল্ডার: উপরের পথ)</button>
+
+  <div class="msg" id="msg"></div>
+</aside>
 
 <script src="mic.js"></script>
 <script>
-  // Gemini API key: pehli baar poochha jaata hai, phir device mein save rehta hai.
+(function () {
+  var panel = document.getElementById("panel");
+  var msg = document.getElementById("msg");
+  var rootPath = "";
+
+  function say(t) { msg.textContent = t; }
+  function hasBridge() { return typeof window.Android !== "undefined"; }
+  function call(name) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    if (!hasBridge()) { say("এই কাজ APK-তে চালালে হবে।"); return ""; }
+    return Android[name].apply(Android, args);
+  }
+
+  // ---- panel open/close ----
+  function openPanel() { panel.classList.add("open"); panel.setAttribute("aria-hidden", "false"); refreshStatus(); }
+  function closePanel() { panel.classList.remove("open"); panel.setAttribute("aria-hidden", "true"); }
+  document.getElementById("menuBtn").addEventListener("click", openPanel);
+  document.getElementById("closePanel").addEventListener("click", closePanel);
+
+  // ---- status ----
+  function refreshStatus() {
+    var s = {};
+    try { s = JSON.parse(call("status") || "{}"); } catch (e) {}
+    rootPath = s.root || "";
+    var on = function (b) { return b ? "চালু ✔" : "বন্ধ ✖"; };
+    document.getElementById("status").textContent =
+      "স্ক্রিন পড়া (অ্যাক্সেসিবিলিটি): " + on(s.accessibility) + "\n" +
+      "নোটিফিকেশন: " + on(s.notifications) + "\n" +
+      "সব ফাইল অ্যাক্সেস: " + on(s.allFiles);
+  }
+
+  document.getElementById("btnA11y").addEventListener("click", function () { call("openAccessibility"); });
+  document.getElementById("btnNotifAccess").addEventListener("click", function () { call("openNotificationAccess"); });
+  document.getElementById("btnAllFiles").addEventListener("click", function () { call("openAllFilesAccess"); });
+
+  // ---- screen reading ----
+  document.getElementById("btnReadScreen").addEventListener("click", function () {
+    document.getElementById("screenOut").textContent = call("getScreenText") || "";
+  });
+
+  // ---- notifications ----
+  document.getElementById("btnNotif").addEventListener("click", function () {
+    var raw = call("getNotifications") || "[]";
+    var arr = []; try { arr = JSON.parse(raw); } catch (e) {}
+    document.getElementById("notifOut").textContent =
+      arr.length ? arr.join("\n\n") : "কোনো নোটিফিকেশন পাওয়া যায়নি।";
+  });
+
+  // ---- file manager ----
+  function currentDir() {
+    var p = document.getElementById("fpath").value.trim();
+    return p || rootPath;
+  }
+
+  function renderList(dir) {
+    var list = document.getElementById("flist");
+    list.innerHTML = "";
+    var raw = call("listFiles", dir);
+    if (!raw) return;
+    if (raw.indexOf("ERR:") === 0) { say(raw.slice(4)); return; }
+    var arr = []; try { arr = JSON.parse(raw); } catch (e) { say("তালিকা পড়া যায়নি।"); return; }
+    if (!arr.length) { list.textContent = "এই ফোল্ডার খালি।"; return; }
+    arr.forEach(function (f) {
+      var row = document.createElement("div");
+      row.className = "file";
+      var info = document.createElement("div");
+      info.style.minWidth = "0";
+      var name = document.createElement("div");
+      name.className = "name";
+      name.textContent = (f.dir ? "📁 " : "📄 ") + f.name;
+      var sub = document.createElement("small");
+      sub.textContent = f.dir ? "ফোল্ডার" : (f.size + " বাইট");
+      info.appendChild(name); info.appendChild(sub);
+      var del = document.createElement("button");
+      del.className = "del";
+      del.textContent = "মোছো";
+      del.addEventListener("click", function () {
+        if (!window.confirm('"' + f.name + '" মুছে ফেলবেন?')) return;
+        var r = call("deleteFile", f.path);
+        if (r === "OK") { say("মুছে ফেলা হয়েছে: " + f.name); renderList(dir); }
+        else say(r.replace("ERR:", ""));
+      });
+      row.appendChild(info); row.appendChild(del);
+      list.appendChild(row);
+    });
+    say("");
+  }
+
+  document.getElementById("btnList").addEventListener("click", function () {
+    renderList(currentDir());
+  });
+
+  document.getElementById("btnNew").addEventListener("click", function () {
+    var name = document.getElementById("fname").value.trim();
+    if (!name) { say("ফাইলের নাম লিখুন।"); return; }
+    var dir = currentDir();
+    var path = dir.replace(/\/+$/, "") + "/" + name;
+    var content = document.getElementById("fcontent").value;
+    var r = call("createFile", path, content);
+    if (r.indexOf("OK:") === 0) { say("ফাইল তৈরি হয়েছে: " + name); renderList(dir); }
+    else if (r) say(r.replace("ERR:", ""));
+  });
+
+  // ---- mic (Gemini Live) ----
   var KEY_NAME = "saara_gemini_key";
   var micOn = false;
-
+  function setMicUi(on) {
+    micOn = on;
+    document.querySelectorAll(".mic-live").forEach(function (el) { el.classList.toggle("on", on); });
+  }
   function getKey() {
     var k = localStorage.getItem(KEY_NAME);
     if (!k) {
-      k = (window.prompt("Gemini API key daao (AIza...)") || "").trim();
+      k = (window.prompt("Gemini API key দাও (AIza...)") || "").trim();
       if (k) localStorage.setItem(KEY_NAME, k);
     }
     return k;
   }
-
-  function setMicUi(on) {
-    micOn = on;
-    document.querySelectorAll(".mic-live").forEach(function (el) {
-      el.classList.toggle("on", on);
-    });
-  }
-
   function toggleMic() {
-    if (micOn) {
-      SaaraMic.stop();
-      setMicUi(false);
-      return;
-    }
+    if (typeof SaaraMic === "undefined") { say("মাইক মডিউল পাওয়া যায়নি।"); return; }
+    if (micOn) { SaaraMic.stop(); setMicUi(false); return; }
     var key = getKey();
     if (!key) return;
     SaaraMic.start({
@@ -266,12 +251,12 @@
       systemPrompt: "Tum Saara ho, ek pyaari female voice assistant. Jawab chhote aur friendly rakho.",
       onConnected: function () { setMicUi(true); },
       onClosed: function () { setMicUi(false); },
-      onError: function (e) { setMicUi(false); console.warn("[Sara]", e); }
+      onError: function (e) { setMicUi(false); say(String(e)); }
     });
   }
-
   document.getElementById("btnMic").addEventListener("click", toggleMic);
   document.getElementById("orbMic").addEventListener("click", toggleMic);
+})();
 </script>
 </body>
 </html>
