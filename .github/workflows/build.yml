@@ -15,17 +15,16 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - uses: android-actions/setup-android@v3
-
       - name: Install SDK packages
         run: |
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+          SDK=/usr/local/lib/android/sdk
+          yes | $SDK/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
+          $SDK/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "build-tools;34.0.0"
 
       - name: Build APK
         run: |
           set -e
-          SDK=$ANDROID_HOME
+          SDK=/usr/local/lib/android/sdk
           JAR=$SDK/platforms/android-34/android.jar
           BT=$SDK/build-tools/34.0.0
           APP=$GITHUB_WORKSPACE/app
