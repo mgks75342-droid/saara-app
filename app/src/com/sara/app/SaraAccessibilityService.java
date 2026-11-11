@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.GestureDescription;
 import android.graphics.Path;
 import android.graphics.Rect;
+import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
@@ -125,6 +126,22 @@ public class SaraAccessibilityService extends AccessibilityService {
         GestureDescription g = new GestureDescription.Builder()
                 .addStroke(new GestureDescription.StrokeDescription(p, 0, 60)).build();
         return s.dispatchGesture(g, null, null);
+    }
+
+    // ---- type into the focused text box (appends) ----
+    static String typeText(String text) {
+        SaraAccessibilityService s = instance;
+        if (s == null) return "ERR:অ্যাক্সেসিবিলিটি চালু নেই";
+        if (text == null || text.isEmpty()) return "ERR:কী টাইপ করব বলুন";
+        AccessibilityNodeInfo root = s.getRootInActiveWindow();
+        if (root == null) return "ERR:স্ক্রিন পড়া যাচ্ছে না";
+        AccessibilityNodeInfo f = root.findFocus(AccessibilityNodeInfo.FOCUS_INPUT);
+        if (f == null) return "ERR:কোনো লেখার ঘর খোলা নেই। আগে ঘরটায় ট্যাপ করুন।";
+        CharSequence old = f.getText();
+        String merged = (old == null ? "" : old.toString()) + text;
+        Bundle b = new Bundle();
+        b.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, merged);
+        return f.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, b) ? "OK" : "ERR:লিখতে পারিনি";
     }
 
     @Override

@@ -114,6 +114,11 @@ public class SaraBridge {
     }
 
     @JavascriptInterface
+    public String typeText(String text) {
+        return SaraAccessibilityService.typeText(text);
+    }
+
+    @JavascriptInterface
     public String tapText(String text) {
         return SaraAccessibilityService.tapText(text);
     }

@@ -107,6 +107,9 @@
   <button class="pbtn" id="btnNotif">শেষ নোটিফিকেশনগুলো দেখো</button>
   <div class="out" id="notifOut"></div>
 
+  <h4>কথা বলার মোড</h4>
+  <button class="pbtn" id="btnMode">মোড: নর্মাল</button>
+
   <h4>অ্যাপ খোলো</h4>
   <input id="appSearch" placeholder="অ্যাপের নাম লিখুন (খালি রাখলে সব)">
   <button class="pbtn" id="btnLoadApps">অ্যাপের তালিকা দেখো</button>
@@ -298,19 +301,45 @@
     }
     return k;
   }
-  var TOOLS = [{ functionDeclarations: [
-    { name: "open_app", description: "ফোনে অ্যাপ খোলো। অ্যাপের নাম ইংরেজিতে দাও, যেমন Facebook, YouTube, Chrome।",
-      parameters: { type: "OBJECT", properties: { app: { type: "STRING", description: "অ্যাপের নাম" } }, required: ["app"] } },
-    { name: "go_back", description: "ফোনের Back বাটন চাপো।", parameters: { type: "OBJECT", properties: {} } },
-    { name: "go_home", description: "হোম স্ক্রিনে যাও।", parameters: { type: "OBJECT", properties: {} } },
-    { name: "recent_apps", description: "রিসেন্ট অ্যাপ বা খোলা ট্যাবের তালিকা দেখাও।", parameters: { type: "OBJECT", properties: {} } },
-    { name: "swipe", description: "স্ক্রিনে সোয়াইপ করো। direction হবে up, down, left বা right।",
-      parameters: { type: "OBJECT", properties: { direction: { type: "STRING" } }, required: ["direction"] } },
-    { name: "tap_text", description: "স্ক্রিনে যে লেখা আছে তাতে ট্যাপ করো, যেমন Login, Search বা কোনো ট্যাবের নাম।",
-      parameters: { type: "OBJECT", properties: { text: { type: "STRING" } }, required: ["text"] } },
-    { name: "read_screen", description: "এখন স্ক্রিনে কী লেখা আছে পড়ে শোনাও।", parameters: { type: "OBJECT", properties: {} } },
-    { name: "list_notifications", description: "শেষ নোটিফিকেশনগুলো বলো।", parameters: { type: "OBJECT", properties: {} } }
-  ] }];
+  var TOOLS = [
+    { functionDeclarations: [
+      { name: "open_app", description: "ফোনে অ্যাপ খোলো। অ্যাপের নাম ইংরেজিতে দাও, যেমন Facebook, YouTube, Chrome।",
+        parameters: { type: "OBJECT", properties: { app: { type: "STRING", description: "অ্যাপের নাম" } }, required: ["app"] } },
+      { name: "go_back", description: "ফোনের Back বাটন চাপো।", parameters: { type: "OBJECT", properties: {} } },
+      { name: "go_home", description: "হোম স্ক্রিনে যাও।", parameters: { type: "OBJECT", properties: {} } },
+      { name: "recent_apps", description: "রিসেন্ট অ্যাপ বা খোলা ট্যাবের তালিকা দেখাও।", parameters: { type: "OBJECT", properties: {} } },
+      { name: "swipe", description: "স্ক্রিনে সোয়াইপ করো। direction হবে up, down, left বা right।",
+        parameters: { type: "OBJECT", properties: { direction: { type: "STRING" } }, required: ["direction"] } },
+      { name: "tap_text", description: "স্ক্রিনে যে লেখা আছে তাতে ট্যাপ করো, যেমন Login, Search বা কোনো ট্যাবের নাম।",
+        parameters: { type: "OBJECT", properties: { text: { type: "STRING" } }, required: ["text"] } },
+      { name: "type_text", description: "এখন খোলা লেখার ঘরে লেখা টাইপ করো। শুধু tool-এর result OK হলে বলবে টাইপ হয়েছে; ERR হলে কারণ বলবে।",
+        parameters: { type: "OBJECT", properties: { text: { type: "STRING" } }, required: ["text"] } },
+      { name: "read_screen", description: "এখন স্ক্রিনে কী লেখা আছে পড়ে শোনাও।", parameters: { type: "OBJECT", properties: {} } },
+      { name: "list_notifications", description: "শেষ নোটিফিকেশনগুলো বলো।", parameters: { type: "OBJECT", properties: {} } },
+      { name: "set_mode", description: "কথা বলার মোড বদলাও। mode: gf (জান, বাবু, সোনা বলে ডাকবে) অথবা normal।",
+        parameters: { type: "OBJECT", properties: { mode: { type: "STRING" } }, required: ["mode"] } }
+    ] },
+    { googleSearch: {} }
+  ];
+
+  var mode = localStorage.getItem("saara_mode") || "normal";
+
+  function buildPrompt() {
+    var base = "Tumi Saara, ekjon bondhubhabapanno AI assistant. Bangla ba Hinglish-e chhoto, sohoj uttor dao. " +
+      "User kono kaj korte bolle sathe sathe sothik tool call koro. Tool-er result je rokom, shei onujayi bolo: " +
+      "result OK hole bolo kaj hoyeche, ERR hole karon bolo, kakhono mithya kore bolo na je kaj hoyeche. " +
+      "Proshner uttor sojaasoji dao; tothyo darkar hole Google search use koro.";
+    if (mode === "gf") {
+      return base + " Ekhon GF mode: tumi user ke 'jaan', 'babu' ba 'shona' bole dakbe, mishti, pyar bhora, " +
+        "kintu sommanjoshor, ashlilota chhara.";
+    }
+    return base + " Ekhon normal mode: tumi professional, bishesh bhalobasha chhara, business-er moto kotha bolbe, " +
+      "jaan/babu/shona bolbe na.";
+  }
+
+  function updateModeUi() {
+    document.getElementById("btnMode").textContent = "মোড: " + (mode === "gf" ? "GF (জান/বাবু/সোনা)" : "নর্মাল");
+  }
 
   function runTool(name, args) {
     args = args || {};
@@ -321,28 +350,29 @@
       case "recent_apps": return call("performGlobal", "recents");
       case "swipe": return call("swipe", args.direction || "up");
       case "tap_text": return call("tapText", args.text || "");
+      case "type_text": return call("typeText", args.text || "");
       case "read_screen": return call("getScreenText");
       case "list_notifications": {
         var arr = [];
         try { arr = JSON.parse(call("getNotifications") || "[]"); } catch (e) {}
         return arr.length ? arr.map(function (n) { return n.text; }).join("\n") : "কোনো নোটিফিকেশন নেই।";
       }
-      default: return "এই কাজ এখনো যোগ হয়নি";
+      case "set_mode": {
+        setMode(args.mode === "gf" ? "gf" : "normal");
+        return "OK: মোড " + (mode === "gf" ? "GF" : "নর্মাল") + " করা হয়েছে";
+      }
+      default: return "ERR: এই কাজ এখনো যোগ হয়নি";
     }
   }
 
-  function toggleMic() {
-    if (typeof SaaraMic === "undefined") { say("মাইক মডিউল পাওয়া যায়নি।"); return; }
-    if (micOn) { SaaraMic.stop(); setMicUi(false); return; }
+  function startMic() {
     var key = getKey();
     if (!key) return;
     SaaraMic.start({
       apiKey: key,
       voice: "Kore",
       tools: TOOLS,
-      systemPrompt: "Tum Saara ho, ek pyaari female voice assistant. Bangla ya Hinglish mein chhote, friendly jawab do. " +
-        "Jab user kisi app kholne, screen par tap/swipe karne, back jaane ya screen padhne ko bole, tab sahi tool call karo. " +
-        "Tool ka result sun kar user ko short mein bolo ki kya hua.",
+      systemPrompt: buildPrompt(),
       onToolCall: function (name, args) {
         var r = runTool(name, args);
         say(String(r));
@@ -353,6 +383,29 @@
       onError: function (e) { setMicUi(false); say(String(e)); }
     });
   }
+
+  function toggleMic() {
+    if (typeof SaaraMic === "undefined") { say("মাইক মডিউল পাওয়া যায়নি।"); return; }
+    if (micOn) { SaaraMic.stop(); setMicUi(false); return; }
+    startMic();
+  }
+
+  // Mode change: save, and if mic is live restart so the new persona applies now.
+  function setMode(m) {
+    mode = m;
+    localStorage.setItem("saara_mode", m);
+    updateModeUi();
+    if (micOn) {
+      SaaraMic.stop();
+      setMicUi(false);
+      setTimeout(startMic, 700);
+    }
+  }
+  document.getElementById("btnMode").addEventListener("click", function () {
+    setMode(mode === "gf" ? "normal" : "gf");
+  });
+  updateModeUi();
+
   document.getElementById("btnMic").addEventListener("click", toggleMic);
   document.getElementById("orbMic").addEventListener("click", toggleMic);
 })();

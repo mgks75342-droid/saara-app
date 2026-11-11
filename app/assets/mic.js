@@ -219,7 +219,7 @@ registerProcessor("saara-mic", SaaraMic);
           },
           systemInstruction: { parts: [{ text: opts.systemPrompt || "Tum Saara ho, ek friendly voice assistant." }] },
           tools: opts.tools || [],
-          realtimeInputConfig: { automaticActivityDetection: { silenceDurationMs: 10000, prefixPaddingMs: 400 } },
+          realtimeInputConfig: { automaticActivityDetection: { silenceDurationMs: 5000, prefixPaddingMs: 400 } },
           inputAudioTranscription: {},
           outputAudioTranscription: {}
         }
