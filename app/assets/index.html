@@ -298,6 +298,39 @@
     }
     return k;
   }
+  var TOOLS = [{ functionDeclarations: [
+    { name: "open_app", description: "ফোনে অ্যাপ খোলো। অ্যাপের নাম ইংরেজিতে দাও, যেমন Facebook, YouTube, Chrome।",
+      parameters: { type: "OBJECT", properties: { app: { type: "STRING", description: "অ্যাপের নাম" } }, required: ["app"] } },
+    { name: "go_back", description: "ফোনের Back বাটন চাপো।", parameters: { type: "OBJECT", properties: {} } },
+    { name: "go_home", description: "হোম স্ক্রিনে যাও।", parameters: { type: "OBJECT", properties: {} } },
+    { name: "recent_apps", description: "রিসেন্ট অ্যাপ বা খোলা ট্যাবের তালিকা দেখাও।", parameters: { type: "OBJECT", properties: {} } },
+    { name: "swipe", description: "স্ক্রিনে সোয়াইপ করো। direction হবে up, down, left বা right।",
+      parameters: { type: "OBJECT", properties: { direction: { type: "STRING" } }, required: ["direction"] } },
+    { name: "tap_text", description: "স্ক্রিনে যে লেখা আছে তাতে ট্যাপ করো, যেমন Login, Search বা কোনো ট্যাবের নাম।",
+      parameters: { type: "OBJECT", properties: { text: { type: "STRING" } }, required: ["text"] } },
+    { name: "read_screen", description: "এখন স্ক্রিনে কী লেখা আছে পড়ে শোনাও।", parameters: { type: "OBJECT", properties: {} } },
+    { name: "list_notifications", description: "শেষ নোটিফিকেশনগুলো বলো।", parameters: { type: "OBJECT", properties: {} } }
+  ] }];
+
+  function runTool(name, args) {
+    args = args || {};
+    switch (name) {
+      case "open_app": return call("openAppByName", args.app || "");
+      case "go_back": return call("performGlobal", "back");
+      case "go_home": return call("performGlobal", "home");
+      case "recent_apps": return call("performGlobal", "recents");
+      case "swipe": return call("swipe", args.direction || "up");
+      case "tap_text": return call("tapText", args.text || "");
+      case "read_screen": return call("getScreenText");
+      case "list_notifications": {
+        var arr = [];
+        try { arr = JSON.parse(call("getNotifications") || "[]"); } catch (e) {}
+        return arr.length ? arr.map(function (n) { return n.text; }).join("\n") : "কোনো নোটিফিকেশন নেই।";
+      }
+      default: return "এই কাজ এখনো যোগ হয়নি";
+    }
+  }
+
   function toggleMic() {
     if (typeof SaaraMic === "undefined") { say("মাইক মডিউল পাওয়া যায়নি।"); return; }
     if (micOn) { SaaraMic.stop(); setMicUi(false); return; }
@@ -306,7 +339,15 @@
     SaaraMic.start({
       apiKey: key,
       voice: "Kore",
-      systemPrompt: "Tum Saara ho, ek pyaari female voice assistant. Jawab chhote aur friendly rakho.",
+      tools: TOOLS,
+      systemPrompt: "Tum Saara ho, ek pyaari female voice assistant. Bangla ya Hinglish mein chhote, friendly jawab do. " +
+        "Jab user kisi app kholne, screen par tap/swipe karne, back jaane ya screen padhne ko bole, tab sahi tool call karo. " +
+        "Tool ka result sun kar user ko short mein bolo ki kya hua.",
+      onToolCall: function (name, args) {
+        var r = runTool(name, args);
+        say(String(r));
+        return r;
+      },
       onConnected: function () { setMicUi(true); },
       onClosed: function () { setMicUi(false); },
       onError: function (e) { setMicUi(false); say(String(e)); }

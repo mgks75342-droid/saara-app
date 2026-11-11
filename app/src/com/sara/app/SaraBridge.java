@@ -95,7 +95,7 @@ public class SaraBridge {
         open(i);
     }
 
-    // ---- screen reading ----
+    // ---- screen ----
     @JavascriptInterface
     public String getScreenText() {
         String t = SaraAccessibilityService.snapshot();
@@ -103,7 +103,22 @@ public class SaraBridge {
         return t.isEmpty() ? "এই মুহূর্তে স্ক্রিনে পড়ার মতো লেখা নেই।" : t;
     }
 
-    // ---- notifications: JSON array of {key, text} ----
+    @JavascriptInterface
+    public String performGlobal(String name) {
+        return SaraAccessibilityService.globalAction(name);
+    }
+
+    @JavascriptInterface
+    public String swipe(String direction) {
+        return SaraAccessibilityService.swipe(direction);
+    }
+
+    @JavascriptInterface
+    public String tapText(String text) {
+        return SaraAccessibilityService.tapText(text);
+    }
+
+    // ---- notifications ----
     @JavascriptInterface
     public String getNotifications() {
         JSONArray arr = new JSONArray();
@@ -129,22 +144,22 @@ public class SaraBridge {
         try {
             s.cancelNotification(key);
         } catch (Exception e) {
-            // still forget it locally
+            // still forget locally
         }
         SaraNotificationService.forget(key);
         return "OK";
     }
 
-    // ---- apps: JSON array of {name, pkg} ----
+    // ---- apps ----
     @JavascriptInterface
     public String listApps() {
-        List<ResolveInfo> list = act.getPackageManager().queryIntentActivities(
+        final android.content.pm.PackageManager pm = act.getPackageManager();
+        List<ResolveInfo> list = pm.queryIntentActivities(
                 new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0);
         Collections.sort(list, new Comparator<ResolveInfo>() {
             @Override
             public int compare(ResolveInfo a, ResolveInfo b) {
-                return String.valueOf(a.loadLabel(act.getPackageManager()))
-                        .compareToIgnoreCase(String.valueOf(b.loadLabel(act.getPackageManager())));
+                return String.valueOf(a.loadLabel(pm)).compareToIgnoreCase(String.valueOf(b.loadLabel(pm)));
             }
         });
         JSONArray arr = new JSONArray();
@@ -155,7 +170,7 @@ public class SaraBridge {
             seen.add(pkg);
             try {
                 JSONObject o = new JSONObject();
-                o.put("name", String.valueOf(r.loadLabel(act.getPackageManager())));
+                o.put("name", String.valueOf(r.loadLabel(pm)));
                 o.put("pkg", pkg);
                 arr.put(o);
             } catch (Exception e) {
@@ -171,6 +186,28 @@ public class SaraBridge {
         if (li == null) return "ERR:এই অ্যাপ খোলা যাচ্ছে না";
         open(li);
         return "OK";
+    }
+
+    // Voice: app name (e.g. Facebook, YouTube) -> find and open. Exact match first, then "contains".
+    @JavascriptInterface
+    public String openAppByName(String name) {
+        if (name == null || name.trim().isEmpty()) return "ERR:অ্যাপের নাম বলুন";
+        String want = name.trim().toLowerCase();
+        android.content.pm.PackageManager pm = act.getPackageManager();
+        List<ResolveInfo> list = pm.queryIntentActivities(
+                new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER), 0);
+        ResolveInfo exact = null, partial = null;
+        for (ResolveInfo r : list) {
+            String label = String.valueOf(r.loadLabel(pm)).toLowerCase();
+            if (label.equals(want)) { exact = r; break; }
+            if (partial == null && label.contains(want)) partial = r;
+        }
+        ResolveInfo pick = exact != null ? exact : partial;
+        if (pick == null) return "ERR:" + name + " নামের অ্যাপ ফোনে পাওয়া যায়নি";
+        Intent li = pm.getLaunchIntentForPackage(pick.activityInfo.packageName);
+        if (li == null) return "ERR:" + name + " খোলা যাচ্ছে না";
+        open(li);
+        return "OK:" + pick.loadLabel(pm) + " খোলা হচ্ছে";
     }
 
     // ---- file manager ----
