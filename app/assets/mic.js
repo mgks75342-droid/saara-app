@@ -17,6 +17,8 @@
   let sources = [], live = false, wantLive = false, wkUrl = null;
   let opts = {};
   let interruptOn = false;
+  let retries = 0;
+  let reconnectTimer = null;
 
   const noop = () => {};
   const cb = (name) => (opts[name] || noop);
@@ -183,7 +185,8 @@ registerProcessor("saara-mic", SaaraMic);
 
   // ---------- Gemini Live session ----------
   async function start(options) {
-    opts = options || {};
+    if (options) { opts = options; retries = retries || 0; }
+    clearTimeout(reconnectTimer);
     interruptOn = !!opts.allowInterrupt;
     wantLive = true;
 
@@ -206,7 +209,7 @@ registerProcessor("saara-mic", SaaraMic);
 
     await initAudio();
 
-    ws = new WebSocket(WS_URL + encodeURIComponent(key));
+    const sock = ws = new WebSocket(WS_URL + encodeURIComponent(key));
     ws.binaryType = "arraybuffer";
 
     ws.onopen = () => {
@@ -233,6 +236,7 @@ registerProcessor("saara-mic", SaaraMic);
 
       if (m.setupComplete) {
         live = true;
+        retries = 0;
         beginMic();
         cb("onStatus")("Sun rahi hoon... bolo.");
         cb("onConnected")();
@@ -268,15 +272,24 @@ registerProcessor("saara-mic", SaaraMic);
     ws.onerror = () => cb("onError")("Connection error");
 
     ws.onclose = e => {
+      if (ws !== sock) return; // old socket, ignore
       const wasLive = live;
       stop(true);
+      // Mic should stay on: reconnect automatically if the session dropped while the user still wants it.
+      if (wantLive && retries < 5) {
+        retries++;
+        cb("onStatus")("Dobara jorring... (" + retries + ")");
+        reconnectTimer = setTimeout(() => { if (wantLive) start(opts); }, 1500);
+        return;
+      }
       if (wasLive && e.code !== 1000) cb("onError")("Band: " + (e.reason || e.code));
+      wantLive = false;
       cb("onClosed")(e.code);
     };
   }
 
   function stop(keepWant) {
-    if (!keepWant) wantLive = false;
+    if (!keepWant) { wantLive = false; clearTimeout(reconnectTimer); retries = 0; }
     live = false;
     try { ws && ws.close(1000); } catch (e) {}
     try { proc && proc.disconnect(); } catch (e) {}
