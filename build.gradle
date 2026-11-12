@@ -1,0 +1,4 @@
+// Root build file: plugin version এখানে ঠিক করা হয়েছে।
+plugins {
+    id 'com.android.application' version '8.5.2' apply false
+}
