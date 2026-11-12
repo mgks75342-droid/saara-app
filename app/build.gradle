@@ -1,0 +1,17 @@
+// Android Studio-te ei project khulun. minSdk 24 (GestureDescription er jonno).
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.sara.app'
+    compileSdk 34
+    defaultConfig {
+        applicationId "com.sara.app"
+        minSdk 24
+        targetSdk 34
+        versionCode 2
+        versionName "2.0"
+    }
+    buildTypes {
+        release { minifyEnabled false }
+    }
+}
